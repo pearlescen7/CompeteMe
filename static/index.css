@@ -1,0 +1,19 @@
+
+h1 {
+    font-size: 60px; 
+    margin-top:200px;
+}
+
+p {
+    font-size:25px;
+    margin-top: 200px;
+}
+
+#cwrapperl{
+    min-height: 64.5vh;
+}
+
+footer{
+    width: 100%;
+    bottom:0;
+}   

@@ -77,7 +77,6 @@ def login():
         password = request.form.get("password")
         remember = request.form.get("remember")
         user = db.search_user_username(username)
-        print(user.password)
 
         if not user or not check_password_hash(user.password, password):
             flash("Please check your login details.")
@@ -99,6 +98,7 @@ def profile():
 def logout():
     logout_user()
     return redirect(url_for("landing_page"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)

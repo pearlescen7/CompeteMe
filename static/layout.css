@@ -1,34 +1,10 @@
-#signup-button {
-    text-align:center;
-    background-color: rgb(37, 42, 37);
-    color: white;
-    border-radius: 5px;
-    font-size: 25px;
-}
-
-.sl-buttons {
-  padding-top: 50px;
-}
-
-html {
-  min-height: 100%;
-}
 
 body {
-    font-family: 'Roboto Condensed', sans-serif;
-    background-image: linear-gradient(to right bottom, #7e0d0d, #a12f11, #c24e11, #e26e0c, #ff9000); 
-    padding-top: 60px;
-    color: rgba(255, 255, 255, 0.945);
+      font-family: 'Roboto Condensed', sans-serif;
+      background-image: linear-gradient(to right bottom, #7e0d0d, #a12f11, #c24e11, #e26e0c, #ff9000); 
+      color: rgba(255, 255, 255, 0.945);
 }
 
-nav {
-  .navbar-brand {font-size: 30px;}
-	.navbar-toggle {margin: 13px 15px 13px 0;}
-	a {
-		font-size: 18px;
-		padding-bottom: 20px !important;
-		padding-top: 20px !important;
-    transition: all 0.3s ease;
-	}
+html{
+  min-height: 100%;
 }
-
