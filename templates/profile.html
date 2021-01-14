@@ -1,12 +1,66 @@
 {% extends "layout.html" %}
 {% block title %}Profile{% endblock %}
 {% block content %}
-<div style="padding-top:100px;" class="container">          
-    <div class="text-center">    
-        <h1>Hello {{ name }}!</h1>
-        <p>Well there isn't much to do here now right?</p>
-        <p>You can log out if you want to though.</p>
-        <a href =logout><button type="button" class="btn btn-dark">Log out</button></a>
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='profile.css') }}">
+<div class="container" id="wrapper">
+    <div class="row align-items-center text-dark bg-white" id="profile-field">
+        <div class="col-md-4">
+            <div class="card text-white bg-dark" id="pfp-card">
+                {% if current_user.pfp %}
+                    <img class="card-img-top" src="{{ url_for('uploaded_file', filename=current_user.pfp) }}" alt="Card image cap">
+                {% endif %}
+                {% if not current_user.pfp %}
+                    <img class="card-img-top" src="{{ url_for('static', filename='empty-profile.png') }}" alt="Default profile picture">
+                {% endif %}
+                <div class="card-body">
+                    {% if current_user.bio %}
+                    <p class="card-text">{{current_user.bio}}</p>
+                    {% endif %}
+                    {% if not current_user.bio %}
+                    <p class="card-text">You didn't provide any bio info. Luckily you can change this any time.</p>
+                    {% endif %}
+                    <hr style="border-color:white; background-color:white;">
+                    <div class="text-center">
+                        <a href="#"><button type="button" class="btn btn-outline-light">Edit Profile</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        <div class="col-md-8">  
+            <div class="text-left" id="pfp-right">
+                <h1>{{ current_user.username }}'s Profile</h1>
+                <span class="badge badge-dark">Number of events created: {{ current_user.no_events_created }}</span> <span class="badge badge-danger float-right" style="background-color:#e26e0c;">Reputation points: {{ current_user.rep_points}}</span><br>
+                <span class="badge badge-dark">Number of events joined: {{ current_user.no_events_joined }}</span> <span class="badge badge-danger float-right" style="background-color:#e26e0c;"> Experience: {{ current_user.experience}}</span><br>
+                <span class="badge badge-dark">Number of events won: {{ current_user.no_events_won }}</span>
+                
+                
+            </div>
+        </div>
+        <div class="col-md-12">  
+            <div class="text-center" id="comment-text">
+                <h2>Comments</h2>
+                <div class="list-group text-left">
+                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Username</h5>
+                        <hr>
+                        <small class="text-muted">delete button?</small>
+                        </div>
+                        <p class="mb-1">What a great person to hang out with. Hope to play with you again.</p>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Username2</h5>
+                        <hr>
+                        <small class="text-muted">delete button?</small>
+                        </div>
+                        <p class="mb-1">Add me on Discord.</p>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

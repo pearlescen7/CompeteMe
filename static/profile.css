@@ -1,0 +1,15 @@
+#wrapper{
+    height: 50%;
+    width:90%;
+    margin-top: 5rem;
+}
+
+#profile-field{
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#comment-field{
+    padding: 20px;
+    border-radius: 5px;
+}

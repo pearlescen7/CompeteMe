@@ -1,18 +1,29 @@
-from flask import Flask, render_template, request, url_for, redirect, flash
+from flask import Flask, render_template, request, url_for, redirect, flash, send_file, send_from_directory
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from database import Database
 from user import User
+from uuid import uuid4
 import os
+import psycopg2 as dbapi2
+
+
+UPLOAD_FOLDER = 'static/uploads/'
 
 app = Flask(__name__)
 db = Database()
 app.config["db"] = db
 app.config['SECRET_KEY'] = os.urandom(24).hex()
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
+
+def make_unique(string):
+    ident = uuid4().__str__()[:8]
+    return f"{ident}-{string}"
 
 @login_manager.user_loader
 def load_user(userid):
@@ -26,8 +37,15 @@ def landing_page():
 @app.route("/signup", methods = ['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        user = User(0,username=request.form.get("mem_name"), password=generate_password_hash(request.form.get("password"), method='sha256'), email=request.form.get("emailid"), pfp=request.form.get("file_nm"))
-    
+        if request.files:
+            
+            pfp = request.files["file_nm"]
+            #pfp = pfp.read()
+            filename = secure_filename(pfp.filename)
+            filename = make_unique(filename)
+            
+        user = User(0,username=request.form.get("mem_name"), password=generate_password_hash(request.form.get("password"), method='sha256'), email=request.form.get("emailid"), pfp=filename)
+           
         #if passwords don't match
         if (request.form.get("password") != request.form.get("cpassword")):
             flash("Passwords don't match")
@@ -57,6 +75,7 @@ def signup():
 
         try:
             db.add_user(user)
+            pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         except:
             flash("Error occured while adding to database.")
             return render_template("signup.html")
@@ -91,7 +110,11 @@ def login():
 @app.route("/profile")
 @login_required
 def profile():
-    return render_template("profile.html", name = current_user.username)
+    return render_template("profile.html")
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route("/logout")
 @login_required
