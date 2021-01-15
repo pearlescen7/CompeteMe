@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='edit_profile.css') }}">
+<div class="container" id="wrapper">
+  <div class="col">
+    <div class="row">
+      <div class="col mb-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="e-profile">
+              <div class="row">
+                <div class="col-12 col-sm-auto mb-3">
+                  <div class="mx-auto" style="width: 300px;">
+                    <div class="d-flex justify-content-center align-items-center rounded" style="height: 300px; background-color: rgb(233, 236, 239);">
+                        {% if current_user.pfp %}
+                            <img class="card-img-top" src="{{ url_for('uploaded_file', filename=current_user.pfp) }}" alt="Card image cap">
+                        {% endif %}
+                        {% if not current_user.pfp %}
+                            <img class="card-img-top" src="{{ url_for('static', filename='empty-profile.png') }}" alt="Default profile picture">
+                        {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="col d-flex flex-column flex-sm-row justify-content-between mb-3">
+                  <div class="text-center text-sm-left mb-2 mb-sm-0">
+                    <h4 class="pt-sm-2 pb-1 mb-0 text-nowrap">{{ current_user.username }}</h4>
+                  </div>
+                  <div class="text-center text-sm-right">
+                    <span class="badge badge-secondary">administrator</span>
+                    <div class="text-muted"><small>Joined 09 Dec 2017</small></div>
+                  </div>
+                </div>
+              </div>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% if (messages[0] == "0") %}
+                        <div class="alert alert-success" role="alert">
+                            Profile updated successfully. Go back to profile page to see the changes.
+                        </div>
+                    {% endif %}
+                    {% if not (messages[0] == "0") %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                {% endwith %}
+              <div class="tab-content pt-3">
+                <div class="tab-pane active">
+                  <form class="form" method="post" action="" enctype="multipart/form-data">
+                    <div class="row">
+                      <div class="col">
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>Username</label>
+                              <input class="form-control" type="text" name="username" value="{{current_user.username}}">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>Email</label>
+                              <input class="form-control" type="text" name="email" value="{{current_user.email}}">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col mb-3">
+                            <div class="form-group">
+                              <label>About</label>
+                              {% if not current_user.bio %}
+                                <textarea class="form-control" rows="5" name="bio" placeholder="Your bio is empty."></textarea>
+                              {% endif %}
+                              {% if current_user.bio %}
+                                <textarea class="form-control" rows="5" name="bio" placeholder="">{{current_user.bio}}</textarea>
+                              {% endif %}
+                              <button class="btn btn-outline-dark" type="button" style="margin:20px 10px;">
+                                <i class="fa fa-fw fa-camera"></i>
+                                <label id="upload_label" for="upload_photo">Change Photo</label>
+                                <input type="file" name="file_nm" id="upload_photo">
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-12 col-sm-6 mb-3">
+                        <div class="mb-2"><b>Change Password</b></div>
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>Current Password</label>
+                              <input class="form-control" type="password" name="curpassword" placeholder="••••••">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>New Password</label>
+                              <input class="form-control" type="password" name="newpassword" placeholder="••••••">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>Confirm <span class="d-none d-xl-inline">Password</span></label>
+                              <input class="form-control" type="password" name="newpassword2" placeholder="••••••"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-5 offset-sm-1 mb-3">
+                        <div class="mb-2"><b>Danger Zone</b></div>
+                        <div class="row" style="margin-bottom:10px;">
+                          <div class="col">
+                            <button class="btn btn-warning" type="submit" name="photobut" value="p">
+                                Delete Photo
+                            </button>
+                        </div>
+                          </div>
+                        <div class="row">
+                          <div class="col">
+                            <button class="btn btn-danger" type="submit" name="deletebut" value="d">Delete Account</button>
+                          </div>
+                        </div>
+                        
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col d-flex justify-content-end">
+                        <button class="btn btn-outline-dark" type="submit" name="savebut" value="s">Save Changes</button>
+                      </div>
+                    </div>
+                  </form>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+</div>
+
+
+{% endblock %}

@@ -8,10 +8,17 @@
 
   <div id="formContent">
     {% with messages = get_flashed_messages() %}
-    {% if messages%}
-        <div class="alert alert-danger" role="alert">
-            {{ messages[0] }}
-        </div>
+    {% if messages %}
+      {% if messages[0] != "0" %}
+          <div class="alert alert-danger" role="alert">
+              {{ messages[0] }}
+          </div>
+      {% endif %}
+      {% if messages[0] == "0" %}
+          <div class="alert alert-warning" role="alert">
+              Account successfully deleted.
+          </div>
+      {% endif %}
     {% endif %}
     {% endwith %}
     <!-- Login Form -->

@@ -1,0 +1,16 @@
+#wrapper{
+    margin-top: 5rem;
+    color:black;
+}
+
+#upload_photo {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+ }
+
+ #upload_label {
+    cursor: pointer;
+    padding:0;
+    margin:0;
+ }

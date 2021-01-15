@@ -27,7 +27,7 @@ def make_unique(string):
 
 @login_manager.user_loader
 def load_user(userid):
-    return db.search_user_userid(userid)
+    return db.search_user_id(userid)
 
 @app.route("/landing_page")
 @app.route("/")
@@ -37,13 +37,19 @@ def landing_page():
 @app.route("/signup", methods = ['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        if request.files:
+        if request.files["file_nm"].filename != '':
             
+            print("SIGNUP FILE")
+            print(request.files)
+            print(request.form)
             pfp = request.files["file_nm"]
             #pfp = pfp.read()
             filename = secure_filename(pfp.filename)
             filename = make_unique(filename)
-            
+        else: 
+            print("NO SIGNUP FILE?")
+            filename = None
+        
         user = User(0,username=request.form.get("mem_name"), password=generate_password_hash(request.form.get("password"), method='sha256'), email=request.form.get("emailid"), pfp=filename)
            
         #if passwords don't match
@@ -75,7 +81,8 @@ def signup():
 
         try:
             db.add_user(user)
-            pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            if filename:
+                pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         except:
             flash("Error occured while adding to database.")
             return render_template("signup.html")
@@ -111,6 +118,91 @@ def login():
 @login_required
 def profile():
     return render_template("profile.html")
+
+@app.route("/edit_profile", methods = ['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        if "savebut" in request.form.keys():
+            #print(request.form)
+            #print(request.files)
+            if request.files["file_nm"].filename != '':
+
+                pfp = request.files["file_nm"]
+                filename = secure_filename(pfp.filename)
+                filename = make_unique(filename)
+            
+            else:
+                filename = None
+
+            username = request.form.get("username")
+            email = request.form.get("email")
+            bio = request.form.get("bio")
+            curpassword = request.form.get("curpassword")
+            newpassword = request.form.get("newpassword")
+            newpassword2 = request.form.get("newpassword2")
+
+            user = db.search_user_username(username)
+            if user is not None:
+                if (user.username != current_user.username):
+                    flash("Username already exists.")
+                    return render_template("edit_profile.html")
+                else:
+                    username = None
+
+            user = db.search_user_email(email)
+            if user is not None:
+                if (user.email != current_user.email):
+                    flash("Email already exists.")
+                    return render_template("edit_profile.html")
+                else:
+                    email = None
+            
+            if curpassword or newpassword or newpassword2:
+
+                if not check_password_hash(current_user.password, curpassword):
+                    flash("Current password is wrong.")
+                    return render_template("edit_profile.html")
+                
+                elif (newpassword != newpassword2):
+                    flash("Passwords don't match.")
+                    return render_template("edit_profile.html")
+            else:
+                curpassword = None
+                newpassword = None
+                newpassword2 = None
+
+            try:
+                #print(filename)
+                db.update_user_id(current_user.id, username=username, email=email, bio=bio, password=newpassword, pfp=filename)
+                if filename:
+                    #print("UPDATING PFP")
+                    pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                flash("0") 
+                return render_template("edit_profile.html")
+            
+            except:
+                flash("Error occured while adding to database.")
+                return render_template("edit_profile.html")
+
+        elif "deletebut" in request.form.keys():
+            filename = current_user.pfp
+            db.delete_user_id(current_user.id)
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            flash("0")
+            return render_template("login.html")
+
+        elif "photobut" in request.form.keys():
+            filename = current_user.pfp
+            db.delete_user_pfp(current_user.id)
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            flash("0") 
+            return render_template("edit_profile.html")
+        else:
+            flash("Error: Nothing is posted.")
+            return render_template("edit_profile.html")
+    else:    
+        return render_template("edit_profile.html")
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

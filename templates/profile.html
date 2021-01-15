@@ -7,11 +7,11 @@
     <div class="row align-items-center text-dark bg-white" id="profile-field">
         <div class="col-md-4">
             <div class="card text-white bg-dark" id="pfp-card">
-                {% if current_user.pfp %}
-                    <img class="card-img-top" src="{{ url_for('uploaded_file', filename=current_user.pfp) }}" alt="Card image cap">
+                {% if (current_user.pfp is not none) and (current_user.pfp != '') %}
+                    <img class="card-img-top" src="{{ url_for('uploaded_file', filename=current_user.pfp) }}" id="card_img" alt="Card image cap">
                 {% endif %}
-                {% if not current_user.pfp %}
-                    <img class="card-img-top" src="{{ url_for('static', filename='empty-profile.png') }}" alt="Default profile picture">
+                {% if (current_user.pfp == none) or (current_user.pfp == '')  %}
+                    <img class="card-img-top" src="{{ url_for('static', filename='empty-profile.png') }}" id="card_img" alt="Default profile picture">
                 {% endif %}
                 <div class="card-body">
                     {% if current_user.bio %}
@@ -22,7 +22,7 @@
                     {% endif %}
                     <hr style="border-color:white; background-color:white;">
                     <div class="text-center">
-                        <a href="#"><button type="button" class="btn btn-outline-light">Edit Profile</button></a>
+                        <a href="{{ url_for('edit_profile') }}"><button type="button" class="btn btn-outline-light">Edit Profile</button></a>
                     </div>
                 </div>
             </div>

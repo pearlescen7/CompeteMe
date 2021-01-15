@@ -13,3 +13,14 @@
     padding: 20px;
     border-radius: 5px;
 }
+
+#card_img{
+    display: block;
+    margin: 0 auto;
+    width: 200px;
+    height: 200px;
+}
+
+#pfp-card{
+    padding:30px;
+}
