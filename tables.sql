@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS user_t (
     currency integer CHECK(currency >= 0) DEFAULT 0
 );
 
+ALTER TABLE holder ADD COLUMN user_id integer REFERENCES user_t (user_id);
+
 CREATE TABLE IF NOT EXISTS adminship (
     user_id integer REFERENCES user_t (user_id), 
     event_id integer REFERENCES event_t (event_id),

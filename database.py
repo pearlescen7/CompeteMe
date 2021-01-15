@@ -25,6 +25,11 @@ class Database:
             else:
                 cursor.execute("INSERT INTO user_t (username, u_password, email) values (%s, %s, %s)", (user.username, user.password, user.email))
             connection.commit()
+            #print("ADDING HOLDER")
+            user_id = self.search_user_username(user.username).id
+            cursor.execute("INSERT INTO holder (user_id) values (%s)", (user_id, ))
+            #TODO: CREATE INVENTORY FOR USER 
+            connection.commit()
             print(f"User inserted: {0}", user.username)
     
     def search_user_username(self, username):
@@ -33,7 +38,7 @@ class Database:
             cursor.execute("SELECT * FROM user_t WHERE username = %s", (username,))
             row = cursor.fetchone()
             if(row):
-                return User(row[0], row[4], row[5], row[6], row[1], row[2], row[3],  row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14])
+                return User(row[0], row[3], row[4], row[5], row[1], row[2], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13])
             else:
                 return None
 
@@ -43,7 +48,7 @@ class Database:
             cursor.execute("SELECT * FROM user_t WHERE email = %s", (email,))
             row = cursor.fetchone()
             if(row):
-                return User(row[0], row[4], row[5], row[6], row[1], row[2], row[3],  row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14])
+                return User(row[0], row[3], row[4], row[5], row[1], row[2], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13])
             else:
                 return None 
 
@@ -53,7 +58,7 @@ class Database:
             cursor.execute("SELECT * FROM user_t WHERE user_id = %s", (userid,))
             row = cursor.fetchone()
             if(row):
-                return User(row[0], row[4], row[5], row[6], row[1], row[2], row[3],  row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14])
+                return User(row[0], row[3], row[4], row[5], row[1], row[2], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13])
             else:
                 return None 
     
@@ -83,4 +88,34 @@ class Database:
             cursor = connection.cursor()
             cursor.execute("DELETE FROM user_t WHERE user_id = %s", (id,))
             connection.commit()
+    
+    def delete_comment_id(self, id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM comment WHERE comment_id = %s", (id,))
+            connection.commit()
+
+    def get_comments_id(self, user_id):
+        holder_id = self.get_holder_id(user_id)
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT comment.content, comment.comment_date, user_t.username, comment.comment_id FROM comment INNER JOIN user_t ON comment.writer_id = user_t.user_id WHERE comment.holder_id = %s", (holder_id, ))
+            comments = cursor.fetchall()
+        return comments
+    
+    def get_holder_id(self, user_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM holder WHERE user_id = %s", (user_id, ))
+            row = cursor.fetchone()
+        return row[0]
+
+    def send_comment(self, current_user, holder_user, content):
+        holder = self.search_user_username(holder_user)
+        holder_id = self.get_holder_id(holder.id)
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO comment (writer_id, holder_id, content) values (%s, %s, %s)", (current_user.id, holder_id, content))
+            connection.commit()
+        return None
     #def delete_user(self, user):

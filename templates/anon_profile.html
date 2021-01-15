@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %}{{ user.username }}'s Profile{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='profile.css') }}">
+<div class="container" id="wrapper">
+    <div class="row align-items-center text-dark bg-white" id="profile-field">
+        <div class="col-md-4">
+            <div class="card text-white bg-dark" id="pfp-card">
+                {% if (user.pfp is not none) and (user.pfp != '') %}
+                    <img class="card-img-top" src="{{ url_for('uploaded_file', filename=user.pfp) }}" id="card_img" alt="Card image cap">
+                {% endif %}
+                {% if (user.pfp == none) or (user.pfp == '')  %}
+                    <img class="card-img-top" src="{{ url_for('static', filename='empty-profile.png') }}" id="card_img" alt="Default profile picture">
+                {% endif %}
+                <div class="card-body">
+                    {% if user.bio %}
+                    <p class="card-text">{{user.bio}}</p>
+                    {% endif %}
+                    {% if not user.bio %}
+                    <p class="card-text">This user didn't provide any info.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+            
+        <div class="col-md-8">  
+            <div class="text-left" id="pfp-right">
+                <h1>{{ user.username }}'s Profile</h1>
+                <span class="badge badge-dark">Number of events created: {{ user.no_events_created }}</span> <span class="badge badge-danger float-right" style="background-color:#e26e0c;">Reputation points: {{ user.rep_points}}</span><br>
+                <span class="badge badge-dark">Number of events joined: {{ user.no_events_joined }}</span> <span class="badge badge-danger float-right" style="background-color:#e26e0c;"> Experience: {{ user.experience}}</span><br>
+                <span class="badge badge-dark">Number of events won: {{ user.no_events_won }}</span>
+                
+                
+            </div>
+        </div>
+        <div class="col-md-12">  
+            <div class="text-center" id="comment-text">
+                <h2>Comments</h2>
+                {% for comment in comments %}
+                <div class="list-group text-left">
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between">
+                        <a href="/profile/{{comment[2]}}"><h5 class="mb-1" style="color:  #e26e0c">{{comment[2]}}<br><small class="text-muted">{{comment[1]}}</small></h5></a>
+                        <hr>
+                        </div>
+                        <p class="mb-1">{{comment[0]}}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <form class="form" method="post" action="" style="margin-top:10px;">
+                <div class="col-md-12">
+                <div class="form-group">
+                    <textarea class="form-control" rows="5" name="commentfield" placeholder="Leave a comment..."></textarea>
+                    <button class="btn btn-outline-dark" type="submit" style="margin:20px 10px;">Post comment</button>
+                </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

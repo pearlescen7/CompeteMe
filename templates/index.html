@@ -8,7 +8,7 @@
           <h1><u>Welcome to CompeteMe!</u></h1>
           <p>Your place to <span style="color:black;"><u>create</u></span> and <span style="color:black;"><u>manage</u></span> your tournaments/events. Click the button to start creating one.</p>
           {% if not current_user.is_authenticated %}
-          <a href=login><button type="button" class="btn btn-outline-dark btn-lg">Join now!</button></a>
+          <a href="{{url_for('login')}}"><button type="button" class="btn btn-outline-dark btn-lg">Join now!</button></a>
           {% endif %}
           {% if current_user.is_authenticated %}
           <a href="#"><button type="button" class="btn btn-outline-dark btn-lg">Create!</button></a>

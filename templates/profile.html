@@ -41,25 +41,28 @@
         <div class="col-md-12">  
             <div class="text-center" id="comment-text">
                 <h2>Comments</h2>
+                {% for comment in comments %}
                 <div class="list-group text-left">
-                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Username</h5>
+                        <a href="/profile/{{comment[2]}}"><h5 class="mb-1" style="color:  #e26e0c">{{comment[2]}}<br><small class="text-muted">{{comment[1]}}</small></h5></a>
                         <hr>
-                        <small class="text-muted">delete button?</small>
+                        <a href="/delete/{{comment[3]}}"><small class="text-muted">Delete comment</small></a>
                         </div>
-                        <p class="mb-1">What a great person to hang out with. Hope to play with you again.</p>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-                        <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Username2</h5>
-                        <hr>
-                        <small class="text-muted">delete button?</small>
-                        </div>
-                        <p class="mb-1">Add me on Discord.</p>
-                    </a>
+                        <p class="mb-1">{{comment[0]}}</p>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
+            <form class="form" method="post" action="" style="margin-top:10px;">
+                    <div class="col-md-12">
+                    <div class="form-group">
+                        <textarea class="form-control" rows="5" name="commentfield" placeholder="Leave a comment..."></textarea>
+                        <button class="btn btn-outline-dark" type="submit" style="margin:20px 10px;">Post comment</button>
+                    </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>

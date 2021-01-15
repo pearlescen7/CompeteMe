@@ -29,12 +29,12 @@ def make_unique(string):
 def load_user(userid):
     return db.search_user_id(userid)
 
-@app.route("/landing_page")
+@app.route("/landing_page/")
 @app.route("/")
 def landing_page():
     return render_template("index.html")
 
-@app.route("/signup", methods = ['GET', 'POST'])
+@app.route("/signup/", methods = ['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         if request.files["file_nm"].filename != '':
@@ -79,24 +79,24 @@ def signup():
             flash("Email already exists")
             return render_template("signup.html")
 
-        try:
-            db.add_user(user)
-            if filename:
-                pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        except:
-            flash("Error occured while adding to database.")
-            return render_template("signup.html")
+        #try:
+        db.add_user(user)
+        #    if filename:
+        #        pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        #except:
+        #    flash("Error occured while adding to database.")
+        #    return render_template("signup.html")
 
         return redirect(url_for("signup_success"))
 
     else:
         return render_template("signup.html")
 
-@app.route("/signup_success")
+@app.route("/signup_success/")
 def signup_success():
     return render_template("signup_success.html")
 
-@app.route("/login", methods = ['GET', 'POST'])
+@app.route("/login/", methods = ['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get("username")
@@ -113,13 +113,32 @@ def login():
     else:
         return render_template("login.html")
 
+@app.route("/delete/<commentid>")
+@login_required
+def delete_comment(commentid):
+    db.delete_comment_id(commentid)
+    return redirect(url_for("profile"))
 
-@app.route("/profile")
+@app.route("/profile/", methods = ['GET', 'POST'])
 @login_required
 def profile():
-    return render_template("profile.html")
+    if request.method == 'POST':
+        db.send_comment(current_user, current_user.username, request.form.get("commentfield"))
+        
+    comments = db.get_comments_id(current_user.id)
+    return render_template("profile.html", comments=comments)
 
-@app.route("/edit_profile", methods = ['GET', 'POST'])
+@app.route("/profile/<username>", methods = ['GET', 'POST'])
+def anon_profile(username):
+    if request.method == 'POST':
+        db.send_comment(current_user, username, request.form.get("commentfield"))
+    user = db.search_user_username(username)
+    if user is None:
+        return render_template("error.html")
+    comments = db.get_comments_id(user.id)
+    return render_template("anon_profile.html", user=user, comments=comments)
+
+@app.route("/edit_profile/", methods = ['GET', 'POST'])
 @login_required
 def edit_profile():
     if request.method == 'POST':
@@ -188,14 +207,17 @@ def edit_profile():
         elif "deletebut" in request.form.keys():
             filename = current_user.pfp
             db.delete_user_id(current_user.id)
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            if filename:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash("0")
+            logout_user()
             return render_template("login.html")
 
         elif "photobut" in request.form.keys():
             filename = current_user.pfp
             db.delete_user_pfp(current_user.id)
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            if filename:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash("0") 
             return render_template("edit_profile.html")
         else:
@@ -208,7 +230,7 @@ def edit_profile():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-@app.route("/logout")
+@app.route("/logout/")
 @login_required
 def logout():
     logout_user()
