@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS event_t (
     team_size integer NOT NULL,
     no_of_teams integer NOT NULL,
     starting_date TIMESTAMP NOT NULL,
-    duration integer NOT NULL,
     event_type integer NOT NULL,
     event_status integer NOT NULL,
     event_code VARCHAR(6) UNIQUE NOT NULL,

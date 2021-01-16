@@ -1,6 +1,62 @@
 {% extends "layout.html" %}
 {% block title %}Create Event{% endblock %}
 {% block content %}
-
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='create_events.css') }}">
+<div class="container" style="margin-top:100px;">
+    <div class="row" style="background-color: white; color:black; border-radius: 5px 5px 0px 0px; padding:20px;">
+        <div class="col">
+            <h1>Create Event</h1>
+        </div>    
+    </div>
+    <hr style="background-color: white;">
+    <form method="post" action="" enctype="multipart/form-data">
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col">
+                <label for="title">Event Title</label> <br>
+                <input type="text" id="title" name="title" placeholder="Enter your title">
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col-6">
+                <label for="title">Description</label> <br>
+                <textarea class="form-control" name="desc" placeholder="Put event description here..."></textarea>
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col">
+                <label for="quantity">Team Size (between 1-32)</label><br>
+                <input type="number" id="quantity" name="team_size" min="1" max="32">
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col">
+                <label for="quantity">Number of Teams (between 2-128)</label><br>
+                <input type="number" id="quantity" name="no_teams" min="2" max="128">
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col">
+                <label for="daytime">Starting (date and time)</label> <br>
+                <input type="datetime-local" id="daytime" name="daytime">
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black;">
+            <div class="col-3">
+                <h5>Event Type</h5>
+                <div class="form-group">
+                    <select class="form-control" id="exampleFormControlSelect1" name="type">
+                        <option>Leaderboard</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="background-color: white; color:black; padding-bottom:40px; border-radius:0px 0px 5px 5px;">
+            <div class="col">
+                <button class="btn btn-outline-dark" type="submit" name="createbut">Create Event</button>
+            </div>
+        </div>
+        
+    </form>
+</div>
 
 {% endblock %}

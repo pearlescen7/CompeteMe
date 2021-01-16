@@ -63,8 +63,8 @@ def signup():
             flash("Username field can't be empty")
             return render_template("signup.html")
         
-        elif (len(request.form.get("mem_name")) > 32):
-            flash("Username can't be longer than 32 characters.")
+        elif (len(request.form.get("mem_name")) > 32) or (len(request.form.get("mem_name")) < 4):
+            flash("Username must be between 4-32 characters.")
             return render_template("signup.html")
         
         elif (request.form.get("password") == ""):
@@ -204,6 +204,10 @@ def edit_profile():
                 newpassword = None
                 newpassword2 = None
 
+            if len(username) < 4 or len(username) > 32:
+                flash("Username must be between 4-32 characters")
+                return render_template("edit_profile.html")
+
             try:
                 #print(filename)
                 db.update_user_id(current_user.id, username=username, email=email, bio=bio, password=newpassword, pfp=filename)
@@ -250,29 +254,54 @@ def search_events():
         sort = request.form.get("sort")
         title_search = request.form.get("title_search")
         if orderby == "Title":
-            orderby = 'title'
+            orderby = "title"
         elif orderby == "Team Size":
-            orderby = 'team_size'
+            orderby = "team_size"
         elif orderby == "Starting Time":
-            orderby = 'starting_date'
+            orderby = "starting_date"
         elif orderby == "Type":
-            orderby = 'event_type'
+            orderby = "event_type"
         elif orderby == "Status":
-            orderby = 'event_status'
+            orderby = "event_status"
         elif orderby == "XP Prize":
-            orderby = 'xp_prize'
+            orderby = "xp_prize"
         elif orderby == "Prize":
-            orderby = 'prize'
+            orderby = "prize"
+        #print(sort)
         events = db.get_events(orderby=orderby, sort=sort, title_search=title_search)
+        #print(events[0].title)
+        #print(events[1].title)
+        #print(events[2].title)
+        #print(events[3].title)
+        return render_template("search_events.html", events=events)
         #post method to search different criterias
     else:
         events = db.get_events()
-    return render_template("search_events.html", events=events)
+        return render_template("search_events.html", events=events)
 
-@app.route("/create_events/")
+@app.route("/create_events/", methods=['POST', 'GET'])
 @login_required
 def create_events():
-    return render_template("create_events.html")
+    if request.method == 'POST':
+        title = request.form.get("title")
+        desc = request.form.get("desc")
+        team_size = request.form.get("team_size")
+        no_teams = request.form.get("no_teams")
+        daytime = request.form.get("daytime")
+        e_type = request.form.get("type")
+        if e_type == "Leaderboard":
+            e_type = 0
+        #map event types to numbers
+        db.create_event(title=title, desc=desc, team_size=team_size, no_teams=no_teams, daytime=daytime, e_type=e_type, creator_id=current_user.id)
+        return redirect(url_for("manage_events"))
+        #when you create a new event go to manage page
+    else:
+        return render_template("create_events.html")
+
+@app.route("/manage_events/")
+@login_required
+def manage_events():
+    return render_template("manage_events.html")
 
 @app.route("/logout/")
 @login_required
@@ -280,6 +309,9 @@ def logout():
     logout_user()
     return redirect(url_for("landing_page"))
 
+@app.errorhandler(404)
+def error(e):
+    return render_template("error.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -26,13 +26,13 @@
 
                 <h5 style="margin-left:20px;">Sort order: </h5>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="exampleRadios" id="sort" value="ascending" checked>
+                    <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="ascending" checked>
                     <label class="form-check-label" for="exampleRadios1">
                     Ascending
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="exampleRadios" id="sort" value="descending">
+                    <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="descending">
                     <label class="form-check-label" for="exampleRadios2">
                     Descending
                     </label>
@@ -65,25 +65,29 @@
         <tbody>
             {% if events %}
                 {% for event in events %}
-                <tr>
-                <td>{{event.title}}</td>
-                <td><button class="btn btn-outline-dark" type="button" onclick="" style="font-size:10px;">Click to read the description</button></td>
-                <td>{{event.team_size}}</td>
-                <td>{{event.team_no}}</td>
-                <td>{{event.start}}</td>
-                <td>{{event.e_type}}</td>
-                <td>{{event.status}}</td>
-                <td>{{event.code}}</td>
-                <td>{{event.prize}}</td>
-                <td>{{event.xp_prize}}</td>
-                {% if event.winner == none %}
-                <td>-</td>
-                {% endif %}
-                {% if event.winner != none %}
-                <td>{{event.winner}}</td>
-                {% endif %}
-                <td>{{event.creator}}</td>
-                </tr>
+                    <tr>
+                    <td>{{event.title}}</td>
+                    <td><button class="btn btn-outline-dark" type="button" onclick="" style="font-size:10px;">Click to go to the event's page</button></td>
+                    <td>{{event.team_size}}</td>
+                    <td>{{event.team_no}}</td>
+                    <td>{{event.start}}</td>
+                    {% if event.e_type == 0 %}
+                        <td>Leaderboard</td>
+                    {% endif %}
+                    {% if event.status == 0 %}
+                        <td style="color:rgb(0, 218, 0)">Open</td>
+                    {% endif %}
+                    <td>{{event.code}}</td>
+                    <td>{{event.prize}}</td>
+                    <td>{{event.xp_prize}}</td>
+                    {% if event.winner == none %}
+                    <td>-</td>
+                    {% endif %}
+                    {% if event.winner != none %}
+                    <td>{{event.winner}}</td>
+                    {% endif %}
+                    <td>{{event.creator}}</td>
+                    </tr>
                 {% endfor %}
             {% endif %}
             {% if not events %}

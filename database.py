@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2 as dbapi2
-import os
+import os, uuid
 from user import User
 from event import Event
 
@@ -120,16 +120,41 @@ class Database:
             connection.commit()
         return None
 
-    def get_events(self, orderby='title', sort="ascending", title_search='%'):
+    def get_events(self, orderby="title", sort="ascending", title_search='%'):
         events = []
+        if(title_search == ''):
+            title_search = '%'
         with get_connection() as connection:
             cursor = connection.cursor()
             if(sort == "ascending"):
-                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY (values (%s)) ASC", (title_search, orderby))
+                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY $ ASC".replace("$", orderby), (title_search, ))
             else:
-                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY (values (%s)) DESC", (title_search, orderby))
+                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY $ DESC".replace("$", orderby), (title_search, ))
             rows = cursor.fetchall()
             for row in rows:
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], duration=row[6], e_type=row[7], status=row[8], code=row[9], prize=row[10], xp_prize=row[11], winner=row[12], creator=row[13])
+                username = self.search_user_id(row[12]).username
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[11], creator=username)
                 events.append(e)
         return events
+
+    def create_event(self, title, desc, team_size, no_teams, daytime, e_type, creator_id):
+        event_code = uuid.uuid4().hex[:6].upper()
+        while (self.search_event_code(event_code)):
+            event_code = uuid.uuid4().hex[:6].upper()
+
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO event_t (title, event_desc, team_size, no_of_teams, starting_date, event_type, event_status, event_code, prize, xp_prize, creator) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (title, desc, team_size, no_teams, daytime, e_type, 0, event_code, 200, 500, creator_id))
+            connection.commit()
+
+    def search_event_code(self, event_code):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
+            row = cursor.fetchone()
+            if row:
+                username = self.search_user_id(row[12]).username
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[11], creator=username)
+                return e
+            else:
+                return None
