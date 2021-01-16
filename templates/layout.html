@@ -47,8 +47,13 @@
         <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="{{url_for('profile')}}">My Profile</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#">Events</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Events</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item btn-dark" href="{{url_for('search_events')}}">Search</a>
+            <a class="dropdown-item btn-dark" href="{{url_for('create_events')}}">Create</a>
+            <a class="dropdown-item btn-dark" href="#">Manage</a>
+          </div>
         </li>
         <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#">Teams</a>

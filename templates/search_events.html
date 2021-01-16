@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block title %}Search Events{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='search_events.css') }}">
+
+<div id="mainwrapper">
+    <h1 style="margin-top:10rem;margin-bottom:20px; margin-left:190px;"><u>Search Events</u></h1> 
+    <div id="leftwrapper" style=" margin-top: 1rem; margin-left:190px; width:800px; background:rgb(34, 34, 34); padding:10px; border-radius:5px;">
+        <form class="form" method="post" action="">
+            <h3>Search options</h3>
+            <div class="form-check form-check-inline">
+
+                <h5>Order by: </h5>
+                <div class="form-group">
+                    <select class="form-control" id="exampleFormControlSelect1" style="margin-left:10px;" name="orderby">
+                        <option>Title</option>
+                        <option>Team Size</option>
+                        <option>Starting Time</option>
+                        <option>Type</option>
+                        <option>Status</option>
+                        <option>XP Prize</option>
+                        <option>Prize</option>
+                    </select>
+                </div>
+
+                <h5 style="margin-left:20px;">Sort order: </h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="sort" value="ascending" checked>
+                    <label class="form-check-label" for="exampleRadios1">
+                    Ascending
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="sort" value="descending">
+                    <label class="form-check-label" for="exampleRadios2">
+                    Descending
+                    </label>
+                </div>
+            </div>
+            <input type="text" class="form-control" name="title_search" placeholder="Search by title..."> 
+            <button class="btn btn-outline-light" type="submit" style="margin-top: 5px; margin-left:700px;">Search</button>
+        </form>
+    </div>
+    <div id="swrapper">
+        
+        <table class="table table-hover bg-light">
+        <thead>
+            <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Description</th>
+            <th scope="col">Team Size</th>
+            <th scope="col">No of Teams</th>
+            <th scope="col">Starting Time</th>
+            <!--<th scope="col">Ending Time</th>-->
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Code</th>
+            <th scope="col">Prize</th>
+            <th scope="col">XP Prize</th>
+            <th scope="col">Winner</th>
+            <th scope="col">Creator</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if events %}
+                {% for event in events %}
+                <tr>
+                <td>{{event.title}}</td>
+                <td><button class="btn btn-outline-dark" type="button" onclick="" style="font-size:10px;">Click to read the description</button></td>
+                <td>{{event.team_size}}</td>
+                <td>{{event.team_no}}</td>
+                <td>{{event.start}}</td>
+                <td>{{event.e_type}}</td>
+                <td>{{event.status}}</td>
+                <td>{{event.code}}</td>
+                <td>{{event.prize}}</td>
+                <td>{{event.xp_prize}}</td>
+                {% if event.winner == none %}
+                <td>-</td>
+                {% endif %}
+                {% if event.winner != none %}
+                <td>{{event.winner}}</td>
+                {% endif %}
+                <td>{{event.creator}}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            {% if not events %}
+            <tr>
+                <td class="text-center" colspan="12" style="font-size:25px;">No events found.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

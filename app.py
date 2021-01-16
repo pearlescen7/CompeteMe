@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from database import Database
 from user import User
+from event import Event
 from uuid import uuid4
 import os
 import psycopg2 as dbapi2
@@ -62,12 +63,20 @@ def signup():
             flash("Username field can't be empty")
             return render_template("signup.html")
         
+        elif (len(request.form.get("mem_name")) > 32):
+            flash("Username can't be longer than 32 characters.")
+            return render_template("signup.html")
+        
         elif (request.form.get("password") == ""):
             flash("Password field can't be empty")
             return render_template("signup.html")
 
         elif (request.form.get("emailid") == ""):
             flash("Email field can't be empty")
+            return render_template("signup.html")
+        
+        elif (len(request.form.get("password")) < 8):
+            flash("Password should be at least 8 characters.")
             return render_template("signup.html")
         
         #if user already exists
@@ -79,13 +88,13 @@ def signup():
             flash("Email already exists")
             return render_template("signup.html")
 
-        #try:
-        db.add_user(user)
-        #    if filename:
-        #        pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #except:
-        #    flash("Error occured while adding to database.")
-        #    return render_template("signup.html")
+        try:
+            db.add_user(user)
+            if filename:
+                pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        except:
+            flash("Error occured while adding to database.")
+            return render_template("signup.html")
 
         return redirect(url_for("signup_success"))
 
@@ -186,6 +195,10 @@ def edit_profile():
                 elif (newpassword != newpassword2):
                     flash("Passwords don't match.")
                     return render_template("edit_profile.html")
+                
+                elif (len(newpassword) < 8):
+                    flash("New password should be at least 8 characters.")
+                    return render_template("edit_profile.html")
             else:
                 curpassword = None
                 newpassword = None
@@ -229,6 +242,37 @@ def edit_profile():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/search_events/', methods=['GET', 'POST'])
+def search_events():
+    if request.method == 'POST':
+        orderby = request.form.get("orderby")
+        sort = request.form.get("sort")
+        title_search = request.form.get("title_search")
+        if orderby == "Title":
+            orderby = 'title'
+        elif orderby == "Team Size":
+            orderby = 'team_size'
+        elif orderby == "Starting Time":
+            orderby = 'starting_date'
+        elif orderby == "Type":
+            orderby = 'event_type'
+        elif orderby == "Status":
+            orderby = 'event_status'
+        elif orderby == "XP Prize":
+            orderby = 'xp_prize'
+        elif orderby == "Prize":
+            orderby = 'prize'
+        events = db.get_events(orderby=orderby, sort=sort, title_search=title_search)
+        #post method to search different criterias
+    else:
+        events = db.get_events()
+    return render_template("search_events.html", events=events)
+
+@app.route("/create_events/")
+@login_required
+def create_events():
+    return render_template("create_events.html")
 
 @app.route("/logout/")
 @login_required

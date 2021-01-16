@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS user_t (
 );
 
 ALTER TABLE holder ADD COLUMN user_id integer REFERENCES user_t (user_id);
+ALTER TABLE event_t ADD COLUMN creator VARCHAR(32) REFERENCES user_t (username);
 
 CREATE TABLE IF NOT EXISTS adminship (
     user_id integer REFERENCES user_t (user_id), 

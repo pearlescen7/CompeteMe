@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2 as dbapi2
 import os
 from user import User
+from event import Event
 
 #POSTGRES_URL = os.getenv('POSTGRES_URL')
 #POSTGRES_USER = os.getenv('POSTGRES_USER')
@@ -118,4 +119,17 @@ class Database:
             cursor.execute("INSERT INTO comment (writer_id, holder_id, content) values (%s, %s, %s)", (current_user.id, holder_id, content))
             connection.commit()
         return None
-    #def delete_user(self, user):
+
+    def get_events(self, orderby='title', sort="ascending", title_search='%'):
+        events = []
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            if(sort == "ascending"):
+                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY (values (%s)) ASC", (title_search, orderby))
+            else:
+                cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY (values (%s)) DESC", (title_search, orderby))
+            rows = cursor.fetchall()
+            for row in rows:
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], duration=row[6], e_type=row[7], status=row[8], code=row[9], prize=row[10], xp_prize=row[11], winner=row[12], creator=row[13])
+                events.append(e)
+        return events
