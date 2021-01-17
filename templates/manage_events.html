@@ -2,6 +2,9 @@
 {% block title %}Manage Events{% endblock %}
 {% block content %}
 
-    <h1>Manage Events</h1>   
-    
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <h1 style="margin-top:100px; margin-left:auto; margin-right:auto;">{{messages[0]}}</h1>
+    {% endif%}
+    {% endwith %}
 {% endblock %}

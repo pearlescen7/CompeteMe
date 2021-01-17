@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% block title %}Edit Event{% endblock %}
+{% block content %}
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='edit_profile.css') }}">
+<div class="container" id="wrapper">
+  <div class="col">
+    <div class="row">
+      <div class="col mb-3">
+        <div class="card">
+          <div class="card-body">
+            <div class="e-profile">
+              <div class="row">
+                <div class="col d-flex flex-column flex-sm-row justify-content-between mb-3">
+                  <div class="text-center text-sm-left mb-2 mb-sm-0">
+                    <h1 class="pt-sm-2 pb-1 mb-0 text-nowrap">Edit Event</h1>
+                  </div>
+                </div>
+              </div>
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% if "0" in messages %}
+                        <div class="alert alert-success" role="alert">
+                            Event fields updated successfully. Go back to event page to see the changes.
+                        </div>
+                    {% endif %}
+                    {% if "1" in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            Some admins could not be added. Check the username list.
+                        </div>
+                    {% endif %}
+                    {% if "2" in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            Some admins could not be deleted. Check the username list.
+                        </div>
+                    {% endif %}
+                    {% if "3" in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            Error occured in database while updating.
+                        </div>
+                    {% endif %}
+                {% endif %}
+                {% endwith %}
+              <div class="tab-content pt-3">
+                <div class="tab-pane active">
+                  <form class="form" method="post">
+                    <div class="row">
+                      <div class="col">
+                        <div class="row">
+                          <div class="col">
+                            <div class="form-group">
+                              <label>Event Title</label>
+                              <input class="form-control" type="text" name="title" value="{{event.title}}">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col mb-3">
+                            <div class="form-group">
+                              <label>About</label>
+                              {% if not event.desc %}
+                                <textarea class="form-control" rows="5" name="desc" placeholder="Event description is empty."></textarea>
+                              {% endif %}
+                              {% if event.desc %}
+                                <textarea class="form-control" rows="5" name="desc" placeholder="">{{event.desc}}</textarea>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row" style="background-color: white; color:black;">
+                            <div class="col-9">
+                                <label for="quantity">Number of Teams (between 2-128)</label><br>
+                                <input type="number" id="quantity" name="no_teams" min="2" max="128">
+                            </div>
+                            <div class="col-3 text-center">
+                                <label for="delbut"><b>Danger Zone</b></label><br>
+                                <button class="btn btn-danger" type="submit" name="deletebut" id="delbut">Delete Event</button>
+                              </div>
+                        </div>
+                        <div class="row" style="background-color: white; color:black;">
+                            <div class="col">
+                                <label for="daytime">Starting (date and time)</label> <br>
+                                <input type="datetime-local" id="daytime" name="daytime">
+                            </div>
+                        </div>
+                        <hr>
+                        <h3>Edit Admins</h3>
+                        <p>Write the usernames of the admins in comma-separated format that you want to add/delete. You can do both at the same time.<br>(Example input: user1, user2, user3)</p>
+                        <div class="row" style="background-color: white; color:black;">
+                            <div class="col">
+                                <label>Add Admin</label>
+                                <input class="form-control" type="text" name="add_admin">
+                            </div>
+                        </div>
+                        <div class="row" style="background-color: white; color:black;">
+                            <div class="col">
+                                <label>Delete Admin</label>
+                                <input class="form-control" type="text" name="del_admin">
+                            </div>
+                        </div>
+                        <hr>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col" style="margin-top: 50px;">
+                        <button class="btn btn-outline-dark" type="submit" name="savebut">Save Changes</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+</div>
+
+
+{% endblock %}

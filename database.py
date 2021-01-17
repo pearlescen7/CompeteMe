@@ -120,7 +120,7 @@ class Database:
             connection.commit()
         return None
 
-    def get_events(self, orderby="title", sort="ascending", title_search='%'):
+    def get_events(self, orderby="event_status", sort="descending", title_search='%'):
         events = []
         if(title_search == ''):
             title_search = '%'
@@ -132,8 +132,8 @@ class Database:
                 cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY $ DESC".replace("$", orderby), (title_search, ))
             rows = cursor.fetchall()
             for row in rows:
-                username = self.search_user_id(row[12]).username
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[11], creator=username)
+                username = self.search_user_id(row[11]).username
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
                 events.append(e)
         return events
 
@@ -146,6 +146,10 @@ class Database:
             cursor = connection.cursor()
             cursor.execute("INSERT INTO event_t (title, event_desc, team_size, no_of_teams, starting_date, event_type, event_status, event_code, prize, xp_prize, creator) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (title, desc, team_size, no_teams, daytime, e_type, 0, event_code, 200, 500, creator_id))
             connection.commit()
+            event = self.search_event_code(event_code)
+            cursor.execute("INSERT INTO adminship (user_id, event_id) values (%s, %s)", (creator_id, event.id))
+            connection.commit()
+        return str(event_code)
 
     def search_event_code(self, event_code):
         with get_connection() as connection:
@@ -153,8 +157,79 @@ class Database:
             cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
             row = cursor.fetchone()
             if row:
-                username = self.search_user_id(row[12]).username
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[11], creator=username)
+                username = self.search_user_id(row[11]).username
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
                 return e
             else:
                 return None
+
+    def search_adminship(self, user_id, event_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM adminship WHERE user_id = %s AND event_id = %s", (user_id, event_id))
+            row = cursor.fetchone()
+            if row:
+                return True
+            else:
+                return False
+    
+    def delete_event_id(self, event_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM adminship WHERE event_id = %s", (event_id, ))
+            cursor.execute("SELECT * FROM team WHERE event_id = %s", (event_id, ))
+            teams = cursor.fetchall()
+            for team in teams:
+                cursor.execute("UPDATE user_t SET team_id NULL WHERE team_id = %s", (team[0], ))
+
+            cursor.execute("DELETE FROM team WHERE event_id = %s", (event_id, ))
+            cursor.execute("DELETE FROM event_t WHERE event_id = %s", (event_id, ))
+            connection.commit()
+
+    def add_admin(self, user_id, event_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            try:
+                cursor.execute("INSERT INTO adminship (user_id, event_id) values (%s, %s)", (user_id, event_id))
+                connection.commit()
+                return True
+            except:
+                print("COULD NOT ADD")
+                return False
+
+    def del_admin(self, user_id, event_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            try:
+                cursor.execute("DELETE FROM adminship WHERE user_id = %s", (user_id, ))
+                connection.commit()
+                return True
+            except:
+                print("COULD NOT DEL")
+                return False
+    
+    def search_event_id(self, id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
+            row = cursor.fetchone()
+            if row:
+                username = self.search_user_id(row[11]).username
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
+                return e
+            else:
+                return None
+
+    def update_event_id(self, id, title, no_teams, desc, daytime):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            if title:
+                cursor.execute("UPDATE event_t SET title = %s WHERE event_id = %s", (title, id))
+            if no_teams:
+                cursor.execute("UPDATE event_t SET no_of_teams = %s WHERE event_id = %s", (no_teams, id))
+            if desc:
+                cursor.execute("UPDATE event_t SET event_desc = %s WHERE event_id = %s", (desc, id))
+            if daytime:
+                cursor.execute("UPDATE event_t SET starting_date = %s WHERE event_id = %s", (daytime, id))
+            connection.commit()
+        return self.search_event_id(id)

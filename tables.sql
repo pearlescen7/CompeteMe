@@ -14,8 +14,9 @@ CREATE TABLE IF NOT EXISTS event_t (
     event_code VARCHAR(6) UNIQUE NOT NULL,
     prize integer CHECK(prize > 0) NOT NULL,
     xp_prize integer CHECK(xp_prize > 0) NOT NULL,
-    winner integer
 );
+
+ALTER TABLE event_t ADD COLUMN teams_filled integer DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS inventory (
     inventory_id serial PRIMARY KEY,
@@ -36,9 +37,10 @@ CREATE TABLE IF NOT EXISTS team (
     event_id integer REFERENCES event_t (event_id),
     team_name VARCHAR(32) NOT NULL,
     team_size integer,
-    score integer CHECK(score > 0)
+    score integer CHECK(score >= 0)
 );
 
+ALTER TABLE event_t ADD COLUMN winner integer REFERENCES team (team_id);
 ALTER TABLE team ADD COLUMN creator_id integer REFERENCES user_t (user_id);
 
 CREATE TABLE IF NOT EXISTS user_t (

@@ -6,6 +6,7 @@ from database import Database
 from user import User
 from event import Event
 from uuid import uuid4
+from datetime import datetime
 import os
 import psycopg2 as dbapi2
 
@@ -138,6 +139,7 @@ def profile():
     return render_template("profile.html", comments=comments)
 
 @app.route("/profile/<username>", methods = ['GET', 'POST'])
+@login_required
 def anon_profile(username):
     if request.method == 'POST':
         db.send_comment(current_user, username, request.form.get("commentfield"))
@@ -248,6 +250,7 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/search_events/', methods=['GET', 'POST'])
+@login_required
 def search_events():
     if request.method == 'POST':
         orderby = request.form.get("orderby")
@@ -292,11 +295,109 @@ def create_events():
         if e_type == "Leaderboard":
             e_type = 0
         #map event types to numbers
-        db.create_event(title=title, desc=desc, team_size=team_size, no_teams=no_teams, daytime=daytime, e_type=e_type, creator_id=current_user.id)
-        return redirect(url_for("manage_events"))
+        code = db.create_event(title=title, desc=desc, team_size=team_size, no_teams=no_teams, daytime=daytime, e_type=e_type, creator_id=current_user.id)
+        return redirect(url_for("show_event", eventcode=code))
         #when you create a new event go to manage page
     else:
         return render_template("create_events.html")
+
+@app.route("/<eventcode>", methods=['POST', 'GET'])
+@login_required
+def show_event(eventcode):
+    if request.method == 'POST':
+        if "editbut" in request.form.keys():
+            return redirect(url_for("edit_event", ecode=eventcode))
+        elif "managebut" in request.form.keys():
+            return "manage results"
+        elif "joinbut" in request.form.keys():
+            return "join event"
+    else:
+        event = db.search_event_code(eventcode) 
+        if event is not None:
+            isadmin = db.search_adminship(current_user.id, event.id)
+            teams=[]
+            #teams = db.search_teams(event.id)
+            return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
+        else:
+            return render_template("error.html")
+
+@app.route("/edit_event/<ecode>", methods=['POST', 'GET'])
+@login_required
+def edit_event(ecode):
+    event = db.search_event_code(ecode)
+    if event:
+        isadmin = db.search_adminship(current_user.id, event.id)
+        if not isadmin:
+            return "You are not allowed to visit this page."
+    else:
+        return render_template("error.html")
+    
+    if request.method == 'POST':
+        if "deletebut" in request.form.keys():
+            #delete event
+            db.delete_event_id(event.id)
+            flash("Event deleted successfully.")
+            return render_template("manage_events.html")
+        
+        elif "savebut" in request.form.keys():
+            title = request.form.get("title")
+            desc = request.form.get("desc")
+            no_teams = request.form.get("no_teams")
+            daytime = request.form.get("daytime")
+            add_admin = request.form.get("add_admin")
+            del_admin = request.form.get("del_admin")
+
+            if title == '':
+                flash("Title can't be empty.")
+                return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+            elif no_teams != '':
+                if int(no_teams) < event.teams_filled:
+                    flash("New number of teams can't be smaller than the number of teams that are already signed up for the event.")
+                    return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+                elif (int(no_teams) < 2) or (int(no_teams) > 128):
+                    flash("Number of teams must be between 2 and 128.")
+                    return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+            elif len(desc) > 255:
+                flash("Description can't be longer than 255 characters")
+                return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+            elif daytime != '':
+                if datetime.fromisoformat(daytime) < datetime.now():
+                    flash("Starting time can't be before now.")
+                    return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+
+            try:
+                add_admin = add_admin.split(",")
+                del_admin = del_admin.split(",")
+
+                added_admins=[]
+                deleted_admins=[]
+                
+                for admin in add_admin:
+                    user = db.search_user_username(admin)
+                    if user:
+                        res = db.add_admin(user.id, event.id)
+                        if res:
+                            added_admins.append(admin)
+                        else:
+                            flash("1")
+            
+                for admin in del_admin:
+                    user = db.search_user_username(admin)
+                    if user:
+                        res = db.del_admin(user.id, event.id)
+                        if res:
+                            deleted_admins.append(admin)
+                        else:
+                            flash("2")
+                
+                event = db.update_event_id(id=event.id, title=title, desc=desc, no_teams=no_teams, daytime=daytime)
+                flash("0")
+                return render_template("edit_event.html", event=event, del_ad=deleted_admins, add_ad=added_admins)
+            except:
+                flash("3")
+                return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+    
+    return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
 
 @app.route("/manage_events/")
 @login_required

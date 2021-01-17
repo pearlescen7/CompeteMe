@@ -1,5 +1,5 @@
 class Event():
-    def __init__(self, title, team_size, team_no, start, e_type, status, code, creator, id=None, desc=None, prize=None, xp_prize=None, winner=None):
+    def __init__(self, title, team_size, team_no, start, e_type, status, code, creator, id=None, desc=None, prize=None, xp_prize=None, winner=None, teams_filled=0):
         self.id = id
         self.title = title
         self.desc = desc
@@ -12,4 +12,5 @@ class Event():
         self.prize = prize
         self.xp_prize = xp_prize
         self.winner = winner
-        self.creator = creator  
+        self.creator = creator
+        self.teams_filled = teams_filled 

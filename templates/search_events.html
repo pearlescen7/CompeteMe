@@ -67,9 +67,9 @@
                 {% for event in events %}
                     <tr>
                     <td>{{event.title}}</td>
-                    <td><button class="btn btn-outline-dark" type="button" onclick="" style="font-size:10px;">Click to go to the event's page</button></td>
+                    <td><a href="{{url_for('show_event', eventcode=event.code)}}"><button class="btn btn-outline-dark" type="button" onclick="" style="font-size:10px;">Click to go to the event's page</button></a></td>
                     <td>{{event.team_size}}</td>
-                    <td>{{event.team_no}}</td>
+                    <td>{{event.teams_filled}}/{{event.team_no}}</td>
                     <td>{{event.start}}</td>
                     {% if event.e_type == 0 %}
                         <td>Leaderboard</td>
