@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS team (
 
 ALTER TABLE event_t ADD COLUMN winner integer REFERENCES team (team_id);
 ALTER TABLE team ADD COLUMN creator_id integer REFERENCES user_t (user_id);
+ALTER TABLE team ADD COLUMN is_private integer;
+ALTER TABLE team ADD COLUMN team_filled integer;
 
 CREATE TABLE IF NOT EXISTS user_t (
     user_id serial PRIMARY KEY,

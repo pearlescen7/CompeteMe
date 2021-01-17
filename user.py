@@ -8,6 +8,7 @@ class User(UserMixin):
         self.email = email
         self.pfp = pfp
         self.bio = bio
+        self.team_id = team_id
         self.no_events_created = no_events_created
         self.no_events_joined = no_events_joined
         self.no_events_won = no_events_won

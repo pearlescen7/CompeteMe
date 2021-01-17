@@ -75,7 +75,13 @@
                         <td>Leaderboard</td>
                     {% endif %}
                     {% if event.status == 0 %}
-                        <td style="color:rgb(0, 218, 0)">Open</td>
+                        <td class="text-success"><b>Open</b></td>
+                    {% endif %}
+                    {% if event.status == 1 %}
+                        <td class="text-warning"><b>Ongoing</b></td>
+                    {% endif %}
+                    {% if event.status == 2 %}
+                        <td class="text-danger"><b>Closed</b></td>
                     {% endif %}
                     <td>{{event.code}}</td>
                     <td>{{event.prize}}</td>

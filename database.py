@@ -3,6 +3,8 @@ import psycopg2 as dbapi2
 import os, uuid
 from user import User
 from event import Event
+from team import Team
+from datetime import datetime
 
 #POSTGRES_URL = os.getenv('POSTGRES_URL')
 #POSTGRES_USER = os.getenv('POSTGRES_USER')
@@ -87,6 +89,8 @@ class Database:
     def delete_user_id(self, id):
         with get_connection() as connection:
             cursor = connection.cursor()
+            cursor.execute("DELETE FROM comment WHERE writer_id = %s OR holder_id = %s", (id, id))
+            cursor.execute("DELETE FROM holder WHERE user_id = %s", (id, ))
             cursor.execute("DELETE FROM user_t WHERE user_id = %s", (id,))
             connection.commit()
     
@@ -126,12 +130,20 @@ class Database:
             title_search = '%'
         with get_connection() as connection:
             cursor = connection.cursor()
+
             if(sort == "ascending"):
                 cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY $ ASC".replace("$", orderby), (title_search, ))
             else:
                 cursor.execute("SELECT * FROM event_t WHERE title LIKE %s ORDER BY $ DESC".replace("$", orderby), (title_search, ))
             rows = cursor.fetchall()
             for row in rows:
+                
+                time_now = datetime.now()
+                print(row[5])
+                if (time_now > row[5]) and (row[7] == 0):
+                    cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_id = %s", (row[0], ))
+                    connection.commit() 
+
                 username = self.search_user_id(row[11]).username
                 e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
                 events.append(e)
@@ -154,6 +166,16 @@ class Database:
     def search_event_code(self, event_code):
         with get_connection() as connection:
             cursor = connection.cursor()
+
+            cursor.execute("SELECT starting_date FROM event_t WHERE event_code = %s", (event_code, ))
+            row = cursor.fetchone()
+            if row:
+                time_now = datetime.now()
+                print(row[0])
+                if (time_now > row[0]) and (row[7] == 0):
+                    cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_code = %s", (event_code, ))
+                    connection.commit()
+
             cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
             row = cursor.fetchone()
             if row:
@@ -211,6 +233,16 @@ class Database:
     def search_event_id(self, id):
         with get_connection() as connection:
             cursor = connection.cursor()
+
+            cursor.execute("SELECT starting_date FROM event_t WHERE event_id = %s", (id, ))
+            row = cursor.fetchone()
+            if row:
+                time_now = datetime.now()
+                print(row[0])
+                if (time_now > row[0]) and (row[7] == 0):
+                    cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_id = %s", (id, ))
+                    connection.commit()
+
             cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
             row = cursor.fetchone()
             if row:
@@ -233,3 +265,50 @@ class Database:
                 cursor.execute("UPDATE event_t SET starting_date = %s WHERE event_id = %s", (daytime, id))
             connection.commit()
         return self.search_event_id(id)
+
+    def add_team(self, event_id, team_name, team_size, score, is_private, creator_id, team_filled):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO team (event_id, team_name, team_size, score, creator_id, is_private, team_filled) values (%s, %s, %s, %s, %s, %s, %s)", (event_id, team_name, team_size, score, creator_id, is_private, team_filled))
+            cursor.execute("UPDATE event_t SET teams_filled = teams_filled + 1 WHERE event_id = %s", (event_id, ))
+            connection.commit()
+    
+    def search_teams(self, event_id):
+        teams = []
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM team WHERE event_id = %s", (event_id, ))
+            rows = cursor.fetchall()
+            if rows:
+                for row in rows:
+                    user = self.search_user_id(row[6])
+                    teams.append(Team(row[0], row[1], row[2], row[3], row[4], row[5], user.username, row[7]))
+            
+        return teams
+
+    def get_team_id(self, creator_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM team WHERE creator_id = %s", (creator_id, ))
+            team = cursor.fetchone()
+            return team[0]
+
+    def fix_team_id(self, username, team_id):
+        user = self.search_user_username(username)
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("UPDATE user_t SET team_id = %s WHERE user_id = %s", (team_id, user.id))
+            connection.commit()
+
+    def fix_team_filled(self, validnum, username):
+        user = self.search_user_username(username)
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("UPDATE team SET team_filled = %s WHERE creator_id = %s", (validnum, user.id))
+            connection.commit()
+    
+    def inc_team_filled(self, team_id):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("UPDATE team SET team_filled = team_filled + 1 WHERE team_id = %s", (team_id, ))
+            connection.commit()

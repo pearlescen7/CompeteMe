@@ -12,17 +12,24 @@
                 {% if event.status == 0%}
                 No winner
                 {% endif %}
+                {% if event.status == 1%}
+                No winner
+                {% endif %}
                 {% if event.status == 2%}
                     {{event.winner}}
                 {% endif %}
             </h3>
         </div>
         <div class="col-3" style="padding-top:10px;">
-            <h3 class="text-success text-center"> Status : 
-                {% if event.status == 0%}
-                Open
-                {% endif %}
-            </h3>
+            {% if event.status == 0%}
+                <h3 class="text-success text-center"> Status : Open</h3>
+            {% endif %}
+            {% if event.status == 1%}
+                <h3 class="text-success text-warning"> Status : Ongoing</h3>
+            {% endif %}
+            {% if event.status == 2%}
+                <h3 class="text-success text-danger"> Status : Closed</h3>
+            {% endif %}
         </div>
         <div class="col-2 text-center">
             {% if isadmin and event.status == 0%}
@@ -31,9 +38,6 @@
             {% endif %}
             {% if isadmin and event.status == 1%}
                 <button class="btn btn-outline-dark" type="submit" name="managebut" style="margin-top:10px;">Manage Results</button>
-            {% endif %}
-            {% if not isadmin %}
-                <button class="btn btn-outline-dark" type="submit" name="joinbut" style="margin-top:10px;">Join Event</button>
             {% endif %}
             </form>
         </div>
@@ -61,43 +65,72 @@
             <p> {{event.code}}</p>
         </div>
     </div>
-    <div class="row" style="padding-top:40px; padding-left:50px;">
+    {% with messages = get_flashed_messages()%}
+    {% if messages%}
+        {% if messages[0] == "0" %}
+        <div class="alert alert-success" role="alert">
+            Joined the team successfully.
+        </div>
+        {% endif %}
+        {% if messages[0] == "1" %}
+        <div class="alert alert-danger" role="alert">
+            An error occured while adding to database.
+        </div>
+        {% endif %}
+    {% endif %}
+    {% endwith %}
+    <div class="row" style="padding-top:40px; padding-left:50px; padding-right:50px;">
         <table class="table table-hover bg-light">
             <thead>
-                <tr>
+                <tr class="text-center">
                 <th scope="col">Team Name</th>
                 <th scope="col">Score</th>
                 <th scope="col">Team Members</th>
                 <th scope="col">Team Creator</th>
+                <th scope="col">Join</th>
                 </tr>
             </thead>
             <tbody>
+                {% if event.status == 0 %}
+                    {% if (event.teams_filled < event.team_no) and (not isadmin) and ((current_user.team_id == '') or (current_user.team_id == None)) %}
+                        <tr>
+                            <td class="text-center" colspan="5" style="font-size:25px;"><a href="{{url_for('create_team', eventcode=event.code)}}" class="text-success">Click to create your own team!</a></td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="text-center" colspan="5" style="font-size:25px;"> You can't join or create a team right now. <br> Possible reasons: you are an admin, you are already in a team, all teams are filled.</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
                 {% if teams %}
                     {% for team in teams %}
-                        <tr>
-                        <td>team name</td>
-                        <td>score</td>
-                        <td><button class="btn btn-outline-dark" type="button" onclick="showMembers()" style="font-size:10px;">Click to see members</button></td>
-                        <td>creator</td>
+                        <tr class="text-center">
+                            <td>{{team.team_name}}</td>
+                            <td>{{team.score}}</td>
+                            <td><button class="btn btn-outline-dark" type="button" style="font-size:15px;">Click to see members</button></td>
+                            <td>{{team.creator}}</td>
+                            {% if (event.status == 1) or (event.status == 2)%}
+                            <td>Event already started.</td>
+                            {% elif (team.is_private == 1) and (team.id != current_user.team_id) %}
+                            <td>This team is private.</td>
+                            {% elif team.is_private == 0 and ((current_user.team_id == '') or (current_user.team_id == None)) and (team.team_filled < event.team_size) and (isadmin != True) %}
+                            <td><form method="post"><button class="btn btn-outline-dark" type="submit" name="joinbut" value="{{team.id}}" style="font-size:15px;">Click to join</button></form></td>
+                            {% elif (team.is_private == 0) and (current_user.team_id != None) and (team.id != current_user.team_id) %}
+                            <td>You are already in a team.</td>
+                            {% elif team.id == current_user.team_id %}
+                            <td class="bg-dark text-light">Your team</td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 {% endif %}
                 {% if not teams %}
                 <tr>
-                    <td class="text-center" colspan="12" style="font-size:25px;">No teams registered yet.</td>
+                    <td class="text-center" colspan="5" style="font-size:25px;">No teams registered yet.</td>
                 </tr>
                 {% endif %}
             </tbody>
         </table>
     </div>
 </div>
-
-<script>
-    function showMembers(){
-        //get team members with template
-        //insert the members into alert using for loop
-        alert("");
-    }
-</script>
 
 {% endblock %}

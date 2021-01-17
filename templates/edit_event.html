@@ -22,17 +22,17 @@
                 {% if messages %}
                     {% if "0" in messages %}
                         <div class="alert alert-success" role="alert">
-                            Event fields updated successfully. Go back to event page to see the changes.
+                            Event fields updated successfully. Go back to <a href="{{url_for('show_event', eventcode=event.code)}}">event page</a> to see the changes.
                         </div>
                     {% endif %}
                     {% if "1" in messages %}
                         <div class="alert alert-danger" role="alert">
-                            Some admins could not be added. Check the username list.
+                            Some admins could not be added. Check the username list. Click <a href="{{url_for('show_event', eventcode=event.code)}}">here</a> if you want to get back to event page anyway.
                         </div>
                     {% endif %}
                     {% if "2" in messages %}
                         <div class="alert alert-danger" role="alert">
-                            Some admins could not be deleted. Check the username list.
+                            Some admins could not be deleted. Check the username list. Click <a href="{{url_for('show_event', eventcode=event.code)}}">here</a> if you want to get back to event page anyway.
                         </div>
                     {% endif %}
                     {% if "3" in messages %}

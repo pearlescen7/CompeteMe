@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from database import Database
 from user import User
 from event import Event
+from team import Team
 from uuid import uuid4
 from datetime import datetime
 import os
@@ -304,22 +305,30 @@ def create_events():
 @app.route("/<eventcode>", methods=['POST', 'GET'])
 @login_required
 def show_event(eventcode):
+    event = db.search_event_code(eventcode) 
+    if event is not None:
+        isadmin = db.search_adminship(current_user.id, event.id)
+        teams = db.search_teams(event.id)
+    else:
+        return render_template("error.html")
+
     if request.method == 'POST':
         if "editbut" in request.form.keys():
             return redirect(url_for("edit_event", ecode=eventcode))
         elif "managebut" in request.form.keys():
             return "manage results"
         elif "joinbut" in request.form.keys():
-            return "join event"
+            try:
+                db.fix_team_id(current_user.username, request.form.get("joinbut"))
+                db.inc_team_filled(current_user.team_id)
+                flash("0")
+            except:
+                flash("1")
+            finally:
+                return redirect(url_for("show_event.html", eventcode=event.code)) 
     else:
-        event = db.search_event_code(eventcode) 
-        if event is not None:
-            isadmin = db.search_adminship(current_user.id, event.id)
-            teams=[]
-            #teams = db.search_teams(event.id)
-            return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
-        else:
-            return render_template("error.html")
+        return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
+        
 
 @app.route("/edit_event/<ecode>", methods=['POST', 'GET'])
 @login_required
@@ -364,6 +373,9 @@ def edit_event(ecode):
                 if datetime.fromisoformat(daytime) < datetime.now():
                     flash("Starting time can't be before now.")
                     return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+            elif daytime == '':
+                flash("Starting time can't be empty.")
+                return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
 
             try:
                 add_admin = add_admin.split(",")
@@ -398,6 +410,53 @@ def edit_event(ecode):
                 return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
     
     return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
+
+@app.route("/create_team/<eventcode>", methods=['POST','GET'])
+@login_required
+def create_team(eventcode):
+    event = db.search_event_code(eventcode)
+    isadmin = db.search_adminship(current_user.id, event.id)
+    if (event.teams_filled < event.team_no) and (not isadmin) and ((current_user.team_id == '') or (current_user.team_id == None)):
+        if request.method == 'POST':
+            team_name = request.form.get("team_name")
+            user_list = request.form.get("user_list")
+            is_private = request.form.get("is_private")
+            user_list = user_list.split(",")
+            valid_user = 0
+            for user in user_list:
+                if db.search_user_username(user):
+                    valid_user += 1
+            if(valid_user >= int(event.team_size)):
+                flash("User list too long.")
+                return render_template("create_team.html", event=event)
+            elif (valid_user != event.team_size-1) and (is_private is not None):
+                flash("You selected private but didn't give enough valid usernames.")
+                return render_template("create_team.html", event=event)
+            elif (len(team_name) < 3) or (len(team_name) > 32):
+                flash("Team name must be between 3-32 characters.")
+                return render_template("create_team.html", event=event)
+            if is_private is not None:
+                is_private = 1
+            else:
+                is_private = 0
+
+            db.add_team(event_id=event.id, team_name=team_name, team_size=event.team_size, score=0, is_private=is_private, creator_id=current_user.id, team_filled=1)
+            db.fix_team_id(current_user.username, db.get_team_id(current_user.id))
+            validnum = 1
+            for username in user_list:
+                if (username != '') and (username != None):
+                    user = db.search_user_username(username)
+                    admin = db.search_adminship(user.id, event.id)
+                    if not admin:
+                        db.fix_team_id(username, db.get_team_id(current_user.id))
+                        validnum += 1
+            db.fix_team_filled(validnum, current_user.username)
+            return redirect(url_for("show_event", eventcode=event.code))
+
+        else:
+            return render_template("create_team.html", event=event)
+    else:
+        return render_template("error.html")
 
 @app.route("/manage_events/")
 @login_required
