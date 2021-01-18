@@ -320,12 +320,13 @@ def show_event(eventcode):
         elif "joinbut" in request.form.keys():
             try:
                 db.fix_team_id(current_user.username, request.form.get("joinbut"))
-                db.inc_team_filled(current_user.team_id)
+                user = db.search_user_username(current_user.username)
+                db.inc_team_filled(user.team_id)
                 flash("0")
             except:
                 flash("1")
             finally:
-                return redirect(url_for("show_event.html", eventcode=event.code)) 
+                return redirect(url_for("show_event", eventcode=event.code))
     else:
         return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
         
@@ -450,6 +451,8 @@ def create_team(eventcode):
                     if not admin:
                         db.fix_team_id(username, db.get_team_id(current_user.id))
                         validnum += 1
+                    else:
+                        flash("Admins can't be added to teams.")
             db.fix_team_filled(validnum, current_user.username)
             return redirect(url_for("show_event", eventcode=event.code))
 

@@ -65,6 +65,7 @@
             <p> {{event.code}}</p>
         </div>
     </div>
+    <p class="text-center" style="margin-top:10px;"><b>Notice: If your team doesn't acquire enough users until the event starts it will be automatically deleted.</b></p>
     {% with messages = get_flashed_messages()%}
     {% if messages%}
         {% if messages[0] == "0" %}
@@ -84,6 +85,7 @@
             <thead>
                 <tr class="text-center">
                 <th scope="col">Team Name</th>
+                <th scope="col">Players Joined</th>
                 <th scope="col">Score</th>
                 <th scope="col">Team Members</th>
                 <th scope="col">Team Creator</th>
@@ -94,11 +96,11 @@
                 {% if event.status == 0 %}
                     {% if (event.teams_filled < event.team_no) and (not isadmin) and ((current_user.team_id == '') or (current_user.team_id == None)) %}
                         <tr>
-                            <td class="text-center" colspan="5" style="font-size:25px;"><a href="{{url_for('create_team', eventcode=event.code)}}" class="text-success">Click to create your own team!</a></td>
+                            <td class="text-center" colspan="6" style="font-size:25px;"><a href="{{url_for('create_team', eventcode=event.code)}}" class="text-success">Click to create your own team!</a></td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td class="text-center" colspan="5" style="font-size:25px;"> You can't join or create a team right now. <br> Possible reasons: you are an admin, you are already in a team, all teams are filled.</td>
+                            <td class="text-center" colspan="6" style="font-size:25px;"> You can't join or create a team right now. <br> Possible reasons: you are an admin, you are already in a team, all teams are filled.</td>
                         </tr>
                     {% endif %}
                 {% endif %}
@@ -106,11 +108,14 @@
                     {% for team in teams %}
                         <tr class="text-center">
                             <td>{{team.team_name}}</td>
+                            <td>{{team.team_filled}}/{{event.team_size}}</td>
                             <td>{{team.score}}</td>
                             <td><button class="btn btn-outline-dark" type="button" style="font-size:15px;">Click to see members</button></td>
                             <td>{{team.creator}}</td>
                             {% if (event.status == 1) or (event.status == 2)%}
                             <td>Event already started.</td>
+                            {% elif (team.team_filled == event.team_size) and (team.id != current_user.team_id)%}
+                            <td>Team is full.</td>
                             {% elif (team.is_private == 1) and (team.id != current_user.team_id) %}
                             <td>This team is private.</td>
                             {% elif team.is_private == 0 and ((current_user.team_id == '') or (current_user.team_id == None)) and (team.team_filled < event.team_size) and (isadmin != True) %}
@@ -125,7 +130,7 @@
                 {% endif %}
                 {% if not teams %}
                 <tr>
-                    <td class="text-center" colspan="5" style="font-size:25px;">No teams registered yet.</td>
+                    <td class="text-center" colspan="6" style="font-size:25px;">No teams registered yet.</td>
                 </tr>
                 {% endif %}
             </tbody>

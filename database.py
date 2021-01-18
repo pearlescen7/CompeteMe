@@ -143,6 +143,11 @@ class Database:
                 if (time_now > row[5]) and (row[7] == 0):
                     cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_id = %s", (row[0], ))
                     connection.commit() 
+                    cursor.execute("SELECT * FROM team WHERE event_id = %s", (row[0], ))
+                    teams = cursor.fetchall()
+                    for team in teams:
+                        if(teams[7] != row[3]):
+                            cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
                 username = self.search_user_id(row[11]).username
                 e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
@@ -167,14 +172,19 @@ class Database:
         with get_connection() as connection:
             cursor = connection.cursor()
 
-            cursor.execute("SELECT starting_date FROM event_t WHERE event_code = %s", (event_code, ))
+            cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code, ))
             row = cursor.fetchone()
             if row:
                 time_now = datetime.now()
-                print(row[0])
-                if (time_now > row[0]) and (row[7] == 0):
+                print(row[5])
+                if (time_now > row[5]) and (row[7] == 0):
                     cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_code = %s", (event_code, ))
                     connection.commit()
+                    cursor.execute("SELECT * FROM team WHERE event_id = %s", (row[0], ))
+                    teams = cursor.fetchall()
+                    for team in teams:
+                        if(teams[7] != row[3]):
+                            cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
             cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
             row = cursor.fetchone()
@@ -213,6 +223,7 @@ class Database:
             cursor = connection.cursor()
             try:
                 cursor.execute("INSERT INTO adminship (user_id, event_id) values (%s, %s)", (user_id, event_id))
+                cursor.execute("UPDATE user_t SET team_id = NULL WHERE user_id = %s", (user_id, ))
                 connection.commit()
                 return True
             except:
@@ -234,14 +245,19 @@ class Database:
         with get_connection() as connection:
             cursor = connection.cursor()
 
-            cursor.execute("SELECT starting_date FROM event_t WHERE event_id = %s", (id, ))
+            cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
             row = cursor.fetchone()
             if row:
                 time_now = datetime.now()
-                print(row[0])
-                if (time_now > row[0]) and (row[7] == 0):
+                print(row[5])
+                if (time_now > row[5]) and (row[7] == 0):
                     cursor.execute("UPDATE event_t SET event_status = 1 WHERE event_id = %s", (id, ))
                     connection.commit()
+                    cursor.execute("SELECT * FROM team WHERE event_id = %s", (row[0], ))
+                    teams = cursor.fetchall()
+                    for team in teams:
+                        if(teams[7] != row[3]):
+                            cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
             cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
             row = cursor.fetchone()
@@ -310,5 +326,6 @@ class Database:
     def inc_team_filled(self, team_id):
         with get_connection() as connection:
             cursor = connection.cursor()
+            print("increasing")
             cursor.execute("UPDATE team SET team_filled = team_filled + 1 WHERE team_id = %s", (team_id, ))
             connection.commit()
