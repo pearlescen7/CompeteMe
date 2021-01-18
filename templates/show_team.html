@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Manage Events{% endblock %}
+{% block title %}Team {{team.team_name}}{% endblock %}
 {% block content %}
 
     {% with messages = get_flashed_messages() %}
@@ -45,9 +45,9 @@
         </div>
         <div class="row" style="padding-top:20px; padding-bottom:20px;">
             <div class="col">
-                {% if (team.id == current_user.team_id) and (team.creator != current_user.username) %}
+                {% if (team.id == current_user.team_id) and (team.creator != current_user.username) and (event.status == 0)%}
                 <form method="post"><button class="btn btn-outline-dark" type="submit" name="leavebut" value="{{team.id}}" style="font-size:15px;">Click to leave</button></form></td>
-                {% elif (team.id == current_user.team_id) and (team.creator == current_user.username) %}
+                {% elif (team.id == current_user.team_id) and (team.creator == current_user.username) and (event.status == 0) %}
                 <form method="post"><button class="btn btn-outline-dark" type="submit" name="delbut" value="{{team.id}}" style="font-size:15px;">Click to delete team</button></form></td>
                 {% endif %}
             </div>

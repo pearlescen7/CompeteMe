@@ -9,6 +9,13 @@
         </div>    
     </div>
     <hr style="background-color: white;">
+    {% with messages = get_flashed_messages()%}
+    {% if messages %}
+        <div class="alert alert-danger" role="alert">
+            {{messages[0]}}
+        </div>
+    {% endif %}
+    {% endwith %}
     <form method="post" action="" enctype="multipart/form-data">
         <div class="row" style="background-color: white; color:black;">
             <div class="col">
@@ -25,13 +32,13 @@
         <div class="row" style="background-color: white; color:black;">
             <div class="col">
                 <label for="quantity">Team Size (between 1-16)</label><br>
-                <input type="number" id="quantity" name="team_size" min="1" max="16">
+                <input type="number" id="quantity" name="team_size" min="1" max="16" value="1">
             </div>
         </div>
         <div class="row" style="background-color: white; color:black;">
             <div class="col">
                 <label for="quantity">Number of Teams (between 2-128)</label><br>
-                <input type="number" id="quantity" name="no_teams" min="2" max="128">
+                <input type="number" id="quantity" name="no_teams" min="2" max="128" value="2">
             </div>
         </div>
         <div class="row" style="background-color: white; color:black;">

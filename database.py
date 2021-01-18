@@ -124,7 +124,7 @@ class Database:
             connection.commit()
         return None
 
-    def get_events(self, orderby="event_status", sort="descending", title_search='%'):
+    def get_events(self, orderby="event_status", sort="ascending", title_search='%'):
         events = []
         if(title_search == ''):
             title_search = '%'
@@ -147,7 +147,8 @@ class Database:
                     teams = cursor.fetchall()
                     if teams:
                         for team in teams:
-                            if(teams[7] != row[3]):
+                            if(team[7] != row[3]):
+                                cursor.execute("UPDATE user_t SET team_id = NULL WHERE team_id = %s", (team[0], ))
                                 cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
                 username = self.search_user_id(row[11]).username
@@ -186,7 +187,8 @@ class Database:
                     teams = cursor.fetchall()
                     if teams:
                         for team in teams:
-                            if(teams[7] != row[3]):
+                            if(team[7] != row[3]):
+                                cursor.execute("UPDATE user_t SET team_id = NULL WHERE team_id = %s", (team[0], ))
                                 cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
             cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
@@ -229,7 +231,11 @@ class Database:
             cursor = connection.cursor()
             try:
                 cursor.execute("INSERT INTO adminship (user_id, event_id) values (%s, %s)", (user_id, event_id))
-                cursor.execute("UPDATE user_t SET team_id = NULL WHERE user_id = %s", (user_id, ))
+                cursor.execute("SELECT team_id FROM user_t WHERE user_id = %s", (user_id, ))
+                teamid  = cursor.fetchone()
+                team = self.search_team_id(teamid)
+                if team.event_id == event_id:
+                    cursor.execute("UPDATE user_t SET team_id = NULL WHERE user_id = %s", (user_id, ))
                 connection.commit()
                 return True
             except:
@@ -262,8 +268,10 @@ class Database:
                     cursor.execute("SELECT * FROM team WHERE event_id = %s", (row[0], ))
                     teams = cursor.fetchall()
                     for team in teams:
-                        if(teams[7] != row[3]):
+                        if(team[7] != row[3]):
+                            cursor.execute("UPDATE user_t SET team_id = NULL WHERE team_id = %s", (team[0], ))
                             cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
+                            cursor.execute("UPDATE event_t SET teams_filled = teams_filled - 1 WHERE event_id = %s", (id, ))
 
             cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
             row = cursor.fetchone()
@@ -299,7 +307,7 @@ class Database:
         teams = []
         with get_connection() as connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT * FROM team WHERE event_id = %s", (event_id, ))
+            cursor.execute("SELECT * FROM team WHERE event_id = %s ORDER BY score DESC", (event_id, ))
             rows = cursor.fetchall()
             if rows:
                 for row in rows:
@@ -391,3 +399,40 @@ class Database:
                 for row in rows:
                     usernames.append(User(row[0], row[3], row[4], row[5], row[1], row[2], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13]))
         return usernames
+    
+    def close_event_no_teams(self, event):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("UPDATE event_t SET event_status = 2 WHERE event_id = %s", (event.id, ))
+            connection.commit()
+
+    def get_admin_list(self, event_id):
+        admins = []
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT user_id FROM adminship WHERE event_id = %s", (event_id, ))
+            rows = cursor.fetchall()
+            if rows:
+                for row in rows:
+                    admins.append(row[0])
+        return admins
+    
+    def select_event_winner(self, event_id, team_id, xp_prize):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            team = self.search_team_id(team_id)
+            cursor.execute("UPDATE event_t SET winner = %s, event_status = 2 WHERE event_id = %s", (team.id, event_id))
+            cursor.execute("UPDATE user_t SET no_events_won = no_events_won + 1 WHERE team_id = %s", (team.id, ))
+            cursor.execute("SELECT team_id FROM team WHERE event_id = %s", (event_id, ))
+            team_ids = cursor.fetchall()
+            if team_ids:
+                for team_id in team_ids:
+                    cursor.execute("UPDATE user_t SET team_id = NULL, experience = experience + %s WHERE team_id = %s", (xp_prize, team_id))
+            connection.commit()
+    
+    def update_event_scores(self, teams, scores):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            for i in range(len(teams)):
+                cursor.execute("UPDATE team SET score = %s WHERE team_id = %s", (scores[i], teams[i].id))
+            connection.commit()

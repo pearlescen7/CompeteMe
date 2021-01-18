@@ -40,6 +40,11 @@
                             Error occured in database while updating.
                         </div>
                     {% endif %}
+                    {% if (messages[0] != "0") and (messages[0] != "1") and (messages[0] != "2") and (messages[0] != "3") %}
+                        <div class="alert alert-danger" role="alert">
+                            {{messages[0]}}
+                        </div>
+                    {% endif %}
                 {% endif %}
                 {% endwith %}
               <div class="tab-content pt-3">
@@ -71,7 +76,7 @@
                         <div class="row" style="background-color: white; color:black;">
                             <div class="col-9">
                                 <label for="quantity">Number of Teams (between 2-128)</label><br>
-                                <input type="number" id="quantity" name="no_teams" min="2" max="128">
+                                <input type="number" id="quantity" name="no_teams" min="2" max="128" value="{{event.team_no}}">
                             </div>
                             <div class="col-3 text-center">
                                 <label for="delbut"><b>Danger Zone</b></label><br>

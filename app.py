@@ -180,6 +180,9 @@ def edit_profile():
                 if (user.username != current_user.username):
                     flash("Username already exists.")
                     return render_template("edit_profile.html")
+                elif len(username) < 4 or len(username) > 32:
+                    flash("Username must be between 4-32 characters")
+                    return render_template("edit_profile.html")
                 else:
                     username = None
 
@@ -209,9 +212,7 @@ def edit_profile():
                 newpassword = None
                 newpassword2 = None
 
-            if len(username) < 4 or len(username) > 32:
-                flash("Username must be between 4-32 characters")
-                return render_template("edit_profile.html")
+            
 
             try:
                 #print(filename)
@@ -220,7 +221,7 @@ def edit_profile():
                     #print("UPDATING PFP")
                     pfp.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 flash("0") 
-                return render_template("edit_profile.html")
+                return redirect(url_for("edit_profile"))
             
             except:
                 flash("Error occured while adding to database.")
@@ -241,7 +242,7 @@ def edit_profile():
             if filename:
                 os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             flash("0") 
-            return render_template("edit_profile.html")
+            return redirect(url_for("edit_profile"))
         else:
             flash("Error: Nothing is posted.")
             return render_template("edit_profile.html")
@@ -297,6 +298,21 @@ def create_events():
         no_teams = request.form.get("no_teams")
         daytime = request.form.get("daytime")
         e_type = request.form.get("type")
+        if title == "":
+            flash("Event title can't be empty.")
+            return render_template("create_events.html")
+        if team_size == "":
+            flash("Team size can't be empty.")
+            return render_template("create_events.html")
+        if no_teams == "":
+            flash("Number of teams can't be empty.")
+            return render_template("create_events.html")
+        if daytime == "":
+            flash("Starting time can't be empty.")
+            return render_template("create_events.html")
+        if datetime.fromisoformat(daytime) < datetime.now() :
+            flash("Starting time can't be before now.")
+            return render_template("create_events.html")
         if e_type == "Leaderboard":
             e_type = 0
         #map event types to numbers
@@ -313,6 +329,15 @@ def show_event(eventcode):
     if event is not None:
         isadmin = db.search_adminship(current_user.id, event.id)
         teams = db.search_teams(event.id)
+        tempteam = db.search_team_id(event.winner)
+        if tempteam:
+            winnerteam = tempteam.team_name
+        else:
+            winnerteam = None
+        admin_ids = db.get_admin_list(event.id)
+        admins = []
+        for admin_id in admin_ids:
+            admins.append(db.search_user_id(admin_id).username)
     else:
         return render_template("error.html")
 
@@ -320,7 +345,7 @@ def show_event(eventcode):
         if "editbut" in request.form.keys():
             return redirect(url_for("edit_event", ecode=eventcode))
         elif "managebut" in request.form.keys():
-            return "manage results"
+            return redirect(url_for("manage_results", eventcode=eventcode))
         elif "joinbut" in request.form.keys():
             try:
                 db.fix_team_id(current_user.username, request.form.get("joinbut"))
@@ -339,7 +364,7 @@ def show_event(eventcode):
             flash("3")
             return redirect(url_for("show_event", eventcode=event.code))
     else:
-        return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
+        return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams, admins=admins, winnerteam=winnerteam)
         
 
 @app.route("/edit_event/<ecode>", methods=['POST', 'GET'])
@@ -358,7 +383,7 @@ def edit_event(ecode):
             #delete event
             db.delete_event_id(event.id)
             flash("Event deleted successfully.")
-            return render_template("manage_events.html")
+            return redirect(url_for("manage_events"))
         
         elif "savebut" in request.form.keys():
             title = request.form.get("title")
@@ -385,14 +410,14 @@ def edit_event(ecode):
                 if datetime.fromisoformat(daytime) < datetime.now():
                     flash("Starting time can't be before now.")
                     return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
-            elif daytime == '':
-                flash("Starting time can't be empty.")
-                return render_template("edit_event.html", event=event, del_ad=None, add_ad=None)
 
             try:
                 add_admin = add_admin.split(",")
                 del_admin = del_admin.split(",")
 
+                print(add_admin)
+                print(del_admin)
+                
                 added_admins=[]
                 deleted_admins=[]
                 
@@ -497,8 +522,59 @@ def show_team(teamid):
             flash("You deleted your team.")
             return redirect(url_for("manage_events"))
     team = db.search_team_id(teamid)
-    users = db.search_usernames_team_id(teamid)
-    return render_template("show_team.html", team=team, users=users)
+    if team:
+        event = db.search_event_id(team.event_id)
+        users = db.search_usernames_team_id(teamid)
+        return render_template("show_team.html", team=team, users=users, event=event)
+    else:
+        return render_template("error.html")
+
+@app.route("/manage_results/<eventcode>", methods=['POST', 'GET'])
+@login_required
+def manage_results(eventcode):
+    event = db.search_event_code(eventcode)
+    if (event != None):
+        isadmin = db.search_adminship(current_user.id, event.id)
+        if (isadmin):
+            teams = db.search_teams(event.id)
+        else:
+            return render_template("error.html")       
+    else:
+        return render_template("error.html")
+
+    if request.method == 'POST':
+        if "update" in request.form.keys():
+            teams = db.search_teams(event.id)
+            scores = []
+            if teams:
+                for team in teams:
+                    scores.append(request.form.get("score-"+str(team.id)))
+            if not scores:
+                flash("5")
+                return redirect(url_for("show_event", eventcode=event.code))
+            db.update_event_scores(teams, scores)
+            return redirect(url_for("show_event", eventcode=event.code))
+        elif "winner" in request.form.keys():
+            db.select_event_winner(event.id, request.form.get("winner"), event.xp_prize)
+            return redirect(url_for("show_event", eventcode=event.code))
+        else:
+            return render_template("error.html")
+    else:
+        return render_template("manage_results.html", teams=teams, event=event)
+
+@app.route("/close_event/<eventcode>")
+@login_required
+def close_event(eventcode):
+    event = db.search_event_code(eventcode)
+    if (event != None):
+        isadmin = db.search_adminship(current_user.id, event.id)
+        if not isadmin:
+            return render_template("error.html")
+    else:
+        return render_template("error.html")
+
+    db.close_event_no_teams(event)
+    return redirect(url_for("manage_events"))
 
 @app.route("/logout/")
 @login_required
