@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}Manage Events{% endblock %}
+{% block content %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-warning" role="alert">
+        {{messages[0]}}
+    </div>
+    {% endif%}
+    {% endwith %}
+    <div class="container" style="margin-top:100px; background-color: white; border-radius:5px; color:black;">
+        <div class="row text-center" style="padding-top:20px; padding-bottom:20px;">
+            <div class="col-3">
+                <h2>Team name</h2><br>
+                <p style="font-size: 25px;"> {{team.team_name}}</p>
+            </div>
+            <div class="col-3">
+                <h2>Team Size</h2><br>
+                <p style="font-size: 25px;"> {{team.team_filled}}/{{team.team_size}}</p>
+            </div>
+            <div class="col-3">
+                <h2>Creator</h2><br>
+                <p style="font-size: 25px;"> {{team.creator}}</p>
+            </div>
+            <div class="col-3">
+                <h2>Score</h2><br>
+                <p style="font-size: 25px;"> {{team.score}}</p>
+            </div>
+        </div>
+        <hr>
+        <div class="row" style="padding-top:20px; padding-bottom:20px;">
+            <div class="col">
+                <h2>Team members</h2> <br>
+                <p style="font-size: 25px; padding-left:20px;"> 
+                    {% for i in range(users|length): %}
+                        {% if i != users |length - 1 %}
+                        <a href="{{url_for('anon_profile', username=users[i].username)}}">{{users[i].username}}</a>, 
+                        {% else %}
+                        <a href="{{url_for('anon_profile', username=users[i].username)}}">{{users[i].username}}</a>
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+        <div class="row" style="padding-top:20px; padding-bottom:20px;">
+            <div class="col">
+                {% if (team.id == current_user.team_id) and (team.creator != current_user.username) %}
+                <form method="post"><button class="btn btn-outline-dark" type="submit" name="leavebut" value="{{team.id}}" style="font-size:15px;">Click to leave</button></form></td>
+                {% elif (team.id == current_user.team_id) and (team.creator == current_user.username) %}
+                <form method="post"><button class="btn btn-outline-dark" type="submit" name="delbut" value="{{team.id}}" style="font-size:15px;">Click to delete team</button></form></td>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    
+{% endblock %}

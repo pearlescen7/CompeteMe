@@ -20,7 +20,8 @@
                         <option>Type</option>
                         <option>Status</option>
                         <option>XP Prize</option>
-                        <option>Prize</option>
+                        <option>Teams Filled</option>
+                        <!--<option>Prize</option>-->
                     </select>
                 </div>
 
@@ -43,7 +44,6 @@
         </form>
     </div>
     <div id="swrapper">
-        
         <table class="table table-hover bg-light">
         <thead>
             <tr>
@@ -56,7 +56,7 @@
             <th scope="col">Type</th>
             <th scope="col">Status</th>
             <th scope="col">Code</th>
-            <th scope="col">Prize</th>
+            <!--<th scope="col">Prize</th>-->
             <th scope="col">XP Prize</th>
             <th scope="col">Winner</th>
             <th scope="col">Creator</th>
@@ -84,7 +84,7 @@
                         <td class="text-danger"><b>Closed</b></td>
                     {% endif %}
                     <td>{{event.code}}</td>
-                    <td>{{event.prize}}</td>
+                    <!--<td>{{event.prize}}</td>-->
                     <td>{{event.xp_prize}}</td>
                     {% if event.winner == none %}
                     <td>-</td>

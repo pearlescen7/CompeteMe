@@ -147,6 +147,8 @@ def anon_profile(username):
     user = db.search_user_username(username)
     if user is None:
         return render_template("error.html")
+    if user.id == current_user.id:
+        return redirect(url_for("profile"))
     comments = db.get_comments_id(user.id)
     return render_template("anon_profile.html", user=user, comments=comments)
 
@@ -271,6 +273,8 @@ def search_events():
             orderby = "xp_prize"
         elif orderby == "Prize":
             orderby = "prize"
+        elif orderby == "Teams Filled":
+            orderby = "teams_filled"
         #print(sort)
         events = db.get_events(orderby=orderby, sort=sort, title_search=title_search)
         #print(events[0].title)
@@ -320,13 +324,20 @@ def show_event(eventcode):
         elif "joinbut" in request.form.keys():
             try:
                 db.fix_team_id(current_user.username, request.form.get("joinbut"))
-                user = db.search_user_username(current_user.username)
-                db.inc_team_filled(user.team_id)
+                db.inc_team_filled(request.form.get("joinbut"))
                 flash("0")
             except:
                 flash("1")
             finally:
                 return redirect(url_for("show_event", eventcode=event.code))
+        elif "leavebut" in request.form.keys():
+            db.leave_team(current_user.id, current_user.team_id)
+            flash("2")
+            return redirect(url_for("show_event", eventcode=event.code))
+        elif "delbut" in request.form.keys():
+            db.delete_team(event.id, current_user.team_id)
+            flash("3")
+            return redirect(url_for("show_event", eventcode=event.code))
     else:
         return render_template("show_event.html", event=event, isadmin=isadmin, teams=teams)
         
@@ -464,7 +475,30 @@ def create_team(eventcode):
 @app.route("/manage_events/")
 @login_required
 def manage_events():
-    return render_template("manage_events.html")
+    events = db.get_admin_events(current_user.id)
+    curteam = db.search_team_id(current_user.team_id)
+    curevent = None
+    if curteam:
+        curevent = db.search_event_id(curteam.event_id)
+    return render_template("manage_events.html", events=events, curteam=curteam, curevent=curevent)
+
+@app.route("/team/<teamid>", methods=['POST', 'GET'])
+@login_required
+def show_team(teamid):
+    if request.method == 'POST':    
+        if "leavebut" in request.form.keys():
+            db.leave_team(current_user.id, current_user.team_id)
+            flash("You left your current team.")
+            return redirect(url_for("manage_events"))
+        elif "delbut" in request.form.keys():
+            team = db.search_team_id(teamid)
+            event = db.search_event_id(team.event_id)
+            db.delete_team(event.id, current_user.team_id)
+            flash("You deleted your team.")
+            return redirect(url_for("manage_events"))
+    team = db.search_team_id(teamid)
+    users = db.search_usernames_team_id(teamid)
+    return render_template("show_team.html", team=team, users=users)
 
 @app.route("/logout/")
 @login_required

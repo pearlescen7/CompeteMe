@@ -5,7 +5,7 @@
 <div class="container" style="margin-top:100px; color:black; background-color: white; border-radius: 5px;">
     <div class="row" style="padding-top:40px; padding-left:50px;">
         <div class="col-4">
-            <h2> {{event.title}} </h2>
+            <h2> {{event.title}} <br><small style="font-size:15px;">Creator: {{event.creator}}</small> </h2>
         </div>
         <div class="col-3" style="padding-top:10px;">
             <h3 style=> Winner : 
@@ -78,6 +78,16 @@
             An error occured while adding to database.
         </div>
         {% endif %}
+        {% if messages[0] == "2" %}
+        <div class="alert alert-warning" role="alert">
+            You left your team.
+        </div>
+        {% endif %}
+        {% if messages[0] == "3" %}
+        <div class="alert alert-danger" role="alert">
+            You deleted your team.
+        </div>
+        {% endif %}
     {% endif %}
     {% endwith %}
     <div class="row" style="padding-top:40px; padding-left:50px; padding-right:50px;">
@@ -100,7 +110,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td class="text-center" colspan="6" style="font-size:25px;"> You can't join or create a team right now. <br> Possible reasons: you are an admin, you are already in a team, all teams are filled.</td>
+                            <td class="text-center" colspan="6" style="font-size:25px;"> You can't join or create a team right now. <br> <small>Possible reasons: you are an admin of this event, you are already in a team, all teams are filled.</small></td>
                         </tr>
                     {% endif %}
                 {% endif %}
@@ -110,7 +120,7 @@
                             <td>{{team.team_name}}</td>
                             <td>{{team.team_filled}}/{{event.team_size}}</td>
                             <td>{{team.score}}</td>
-                            <td><button class="btn btn-outline-dark" type="button" style="font-size:15px;">Click to see members</button></td>
+                            <td><a href="{{url_for('show_team', teamid=team.id)}}"><button class="btn btn-outline-dark" type="button" style="font-size:15px;">Click to see members</button></a></td>
                             <td>{{team.creator}}</td>
                             {% if (event.status == 1) or (event.status == 2)%}
                             <td>Event already started.</td>
@@ -122,8 +132,12 @@
                             <td><form method="post"><button class="btn btn-outline-dark" type="submit" name="joinbut" value="{{team.id}}" style="font-size:15px;">Click to join</button></form></td>
                             {% elif (team.is_private == 0) and (current_user.team_id != None) and (team.id != current_user.team_id) %}
                             <td>You are already in a team.</td>
-                            {% elif team.id == current_user.team_id %}
-                            <td class="bg-dark text-light">Your team</td>
+                            {% elif (team.id == current_user.team_id) and (team.creator != current_user.username) %}
+                            <td class="bg-dark text-light">Your team<br>
+                                <form method="post"><button class="btn btn-outline-light" type="submit" name="leavebut" value="{{team.id}}" style="font-size:15px;">Click to leave</button></form></td>
+                            {% elif (team.id == current_user.team_id) and (team.creator == current_user.username) %}
+                            <td class="bg-dark text-light">Your team <small>(created by you)</small><br>
+                                <form method="post"><button class="btn btn-outline-light" type="submit" name="delbut" value="{{team.id}}" style="font-size:15px;">Click to delete team</button></form></td>
                             {% endif %}
                         </tr>
                     {% endfor %}
