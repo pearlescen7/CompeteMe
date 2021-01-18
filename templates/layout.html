@@ -39,9 +39,6 @@
           <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#">Hall of Fame</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#">About</a>
-          </li>
         {% endif %}
         {% if current_user.is_authenticated %}
         <li class="nav-item">
@@ -65,6 +62,9 @@
         <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="#">Market</a>
         </li>-->
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" href="{{url_for('search_users')}}">Search User</a>
+        </li>
         <li class="nav-item">
           <a class="nav-link js-scroll-trigger" href="#">Hall of Fame</a>
         </li>

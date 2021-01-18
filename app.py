@@ -288,6 +288,15 @@ def search_events():
         events = db.get_events()
         return render_template("search_events.html", events=events)
 
+@app.route('/search_users/', methods=['GET', 'POST'])
+@login_required
+def search_users():
+    if request.method == 'POST':
+        username = request.form.get("username")
+        return redirect(url_for("anon_profile", username=username))
+    else:
+        return render_template("search_users.html")
+
 @app.route("/create_events/", methods=['POST', 'GET'])
 @login_required
 def create_events():
