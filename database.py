@@ -6,14 +6,10 @@ from event import Event
 from team import Team
 from datetime import datetime
 
-#POSTGRES_URL = os.getenv('POSTGRES_URL')
-#POSTGRES_USER = os.getenv('POSTGRES_USER')
-#POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-#POSTGRES_DB = os.getenv('POSTGRES_DB')
+POSTGRES_URL = os.getenv('DATABASE_URL')
 
 def get_connection():
-    #con = dbapi2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, host=POSTGRES_URL, password=POSTGRES_PASSWORD)
-    con = dbapi2.connect(dbname='test', user='postgres', host='localhost', password='196638609*')
+    con = dbapi2.connect(POSTGRES_URL)
     return con
 
 class Database:
