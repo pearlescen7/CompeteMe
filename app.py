@@ -338,11 +338,7 @@ def show_event(eventcode):
     if event is not None:
         isadmin = db.search_adminship(current_user.id, event.id)
         teams = db.search_teams(event.id)
-        tempteam = db.search_team_id(event.winner)
-        if tempteam:
-            winnerteam = tempteam.team_name
-        else:
-            winnerteam = None
+        winnerteam = event.winner
         admin_ids = db.get_admin_list(event.id)
         admins = []
         for admin_id in admin_ids:

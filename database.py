@@ -13,7 +13,7 @@ from datetime import datetime
 
 def get_connection():
     #con = dbapi2.connect(dbname=POSTGRES_DB, user=POSTGRES_USER, host=POSTGRES_URL, password=POSTGRES_PASSWORD)
-    con = dbapi2.connect(dbname='appdb', user='postgres', host='localhost', password='196638609*')
+    con = dbapi2.connect(dbname='test', user='postgres', host='localhost', password='196638609*')
     return con
 
 class Database:
@@ -151,8 +151,11 @@ class Database:
                                 cursor.execute("UPDATE user_t SET team_id = NULL WHERE team_id = %s", (team[0], ))
                                 cursor.execute("DELETE FROM team WHERE team_id = %s", (team[0], ))
 
-                username = self.search_user_id(row[11]).username
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
+                username = self.search_user_id(row[13]).username
+                team_name_temp = self.search_team_id(row[12])
+                if team_name_temp:
+                    team_name_temp = team_name_temp.team_name
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=team_name_temp, creator=username, teams_filled=row[11])
                 events.append(e)
         return events
 
@@ -194,8 +197,11 @@ class Database:
             cursor.execute("SELECT * FROM event_t WHERE event_code = %s", (event_code,))
             row = cursor.fetchone()
             if row:
-                username = self.search_user_id(row[11]).username
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
+                username = self.search_user_id(row[13]).username
+                team_name_temp = self.search_team_id(row[12])
+                if team_name_temp:
+                    team_name_temp = team_name_temp.team_name
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=team_name_temp, creator=username, teams_filled=row[11])
                 return e
             else:
                 return None
@@ -276,8 +282,11 @@ class Database:
             cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (id, ))
             row = cursor.fetchone()
             if row:
-                username = self.search_user_id(row[11]).username
-                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
+                username = self.search_user_id(row[13]).username
+                team_name_temp = self.search_team_id(row[12])
+                if team_name_temp:
+                    team_name_temp = team_name_temp.team_name
+                e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=team_name_temp, creator=username, teams_filled=row[11])
                 return e
             else:
                 return None
@@ -311,8 +320,8 @@ class Database:
             rows = cursor.fetchall()
             if rows:
                 for row in rows:
-                    user = self.search_user_id(row[6])
-                    teams.append(Team(row[0], row[1], row[2], row[3], row[4], row[5], user.username, row[7]))
+                    user = self.search_user_id(row[5])
+                    teams.append(Team(row[0], row[1], row[2], row[3], row[4], row[6], user.username, row[7]))
             
         return teams
 
@@ -373,8 +382,11 @@ class Database:
                 cursor.execute("SELECT * FROM event_t WHERE event_id = %s", (event_id, ))
                 row = cursor.fetchone()
                 if row:
-                    username = self.search_user_id(row[11]).username
-                    e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=row[13], creator=username, teams_filled=row[12])
+                    username = self.search_user_id(row[13]).username
+                    team_name_temp = self.search_team_id(row[12])
+                    if team_name_temp:
+                        team_name_temp = team_name_temp.team_name
+                    e = Event(id=row[0], title=row[1], desc=row[2], team_size=row[3], team_no=row[4], start=row[5], e_type=row[6], status=row[7], code=row[8], prize=row[9], xp_prize=row[10], winner=team_name_temp, creator=username, teams_filled=row[11])
                     events.append(e)
         return events
     
@@ -384,8 +396,8 @@ class Database:
             cursor.execute("SELECT * FROM team WHERE team_id = %s", (team_id, ))
             row = cursor.fetchone()
             if row:
-                user = self.search_user_id(row[6])
-                return Team(row[0], row[1], row[2], row[3], row[4], row[5], user.username, row[7])
+                user = self.search_user_id(row[5])
+                return Team(row[0], row[1], row[2], row[3], row[4], row[6], user.username, row[7])
             else:
                 return None
     
@@ -422,12 +434,12 @@ class Database:
             cursor = connection.cursor()
             team = self.search_team_id(team_id)
             cursor.execute("UPDATE event_t SET winner = %s, event_status = 2 WHERE event_id = %s", (team.id, event_id))
-            cursor.execute("UPDATE user_t SET no_events_won = no_events_won + 1 WHERE team_id = %s", (team.id, ))
+            cursor.execute("UPDATE user_t SET no_events_won = no_events_won + 1, experience = experience + %s WHERE team_id = %s", (xp_prize, team.id))
             cursor.execute("SELECT team_id FROM team WHERE event_id = %s", (event_id, ))
             team_ids = cursor.fetchall()
             if team_ids:
                 for team_id in team_ids:
-                    cursor.execute("UPDATE user_t SET team_id = NULL, experience = experience + %s WHERE team_id = %s", (xp_prize, team_id))
+                    cursor.execute("UPDATE user_t SET team_id = NULL WHERE team_id = %s", (team_id, ))
             connection.commit()
     
     def update_event_scores(self, teams, scores):
