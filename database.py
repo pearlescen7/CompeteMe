@@ -448,3 +448,67 @@ class Database:
             for i in range(len(teams)):
                 cursor.execute("UPDATE team SET score = %s WHERE team_id = %s", (scores[i], teams[i].id))
             connection.commit()
+
+    def get_max_created(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT username, no_events_created FROM user_t WHERE no_events_created = (SELECT MAX(no_events_created) FROM user_t)")
+            row = cursor.fetchone()
+            if row:
+                return row
+            else:
+                return None
+    
+    def get_max_joined(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT username, no_events_joined FROM user_t WHERE no_events_joined = (SELECT MAX(no_events_joined) FROM user_t)")
+            row = cursor.fetchone()
+            if row:
+                return row
+            else:
+                return None
+    
+    def get_max_winner(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT username, no_events_won FROM user_t WHERE no_events_won = (SELECT MAX(no_events_won) FROM user_t)")
+            row = cursor.fetchone()
+            if row:
+                return row
+            else:
+                return None
+
+    def get_count_events(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM event_t")
+            row = cursor.fetchone()
+            return row[0]
+
+    def get_open_events(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT event_id FROM event_t EXCEPT SELECT event_id FROM event_t WHERE ((event_status = 1) OR (event_status = 2))")
+            row = cursor.fetchall()
+            return len(row)
+    
+    def get_on_events(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT event_id FROM event_t EXCEPT SELECT event_id FROM event_t WHERE ((event_status = 0) OR (event_status = 2))")
+            row = cursor.fetchall()
+            return len(row)
+
+    def get_closed_events(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT event_id FROM event_t EXCEPT SELECT event_id FROM event_t WHERE ((event_status = 0) OR (event_status = 1))")
+            row = cursor.fetchall()
+            return len(row)
+
+    def get_avg_exp(self):
+        with get_connection() as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT AVG(experience) FROM user_t")
+            return cursor.fetchone()[0]

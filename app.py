@@ -567,6 +567,19 @@ def manage_results(eventcode):
     else:
         return render_template("manage_results.html", teams=teams, event=event)
 
+@app.route("/hall_of_fame")
+def hall_of_fame():
+    cu = db.get_max_created()
+    ju = db.get_max_joined()
+    wu = db.get_max_winner()
+    sum_e = db.get_count_events()
+    open_e = db.get_open_events()
+    on_e = db.get_on_events()
+    cl_e = db.get_closed_events()
+    avg_exp = int(db.get_avg_exp())
+    return render_template("hall_of_fame.html", cu=cu, ju=ju, wu=wu, sum_e=sum_e, open_e=open_e, on_e=on_e, cl_e=cl_e, avg_exp=avg_exp)
+
+
 @app.route("/close_event/<eventcode>")
 @login_required
 def close_event(eventcode):

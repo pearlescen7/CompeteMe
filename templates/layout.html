@@ -37,7 +37,7 @@
             <a class="nav-link js-scroll-trigger" href="{{url_for('login')}}">Log in</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#">Hall of Fame</a>
+            <a class="nav-link js-scroll-trigger" href="{{url_for('hall_of_fame')}}">Hall of Fame</a>
           </li>
         {% endif %}
         {% if current_user.is_authenticated %}
@@ -66,7 +66,7 @@
           <a class="nav-link js-scroll-trigger" href="{{url_for('search_users')}}">Search User</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link js-scroll-trigger" href="#">Hall of Fame</a>
+          <a class="nav-link js-scroll-trigger" href="{{url_for('hall_of_fame')}}">Hall of Fame</a>
         </li>
         <li class="nav-item">
             <a class="nav-link js-scroll-trigger" href="{{url_for('logout')}}">Logout</a>
